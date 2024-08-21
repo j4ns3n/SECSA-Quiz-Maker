@@ -1,0 +1,197 @@
+import React, { useState } from 'react';
+import loginImage from '../../assets/loginlogo.png'
+import { Link } from 'react-router-dom';
+// import bcrypt from 'bcryptjs';
+import { useNavigate } from 'react-router-dom';
+import { useUserContext } from '../../hooks/useUserContext';
+
+function Login({ onLogin }) {
+  const navigate = useNavigate();
+  const { dispatch } = useUserContext(); // Access dispatch here
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch('/api/user/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const json = await response.json();
+
+    try {
+      const response = await fetch('/api/user/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        setError("Username or Password is Inccorect");
+      } else {
+        console.log(json);
+        // Assuming the response contains a token and user data
+        const { token, user } = json;
+
+        // Save the token in local storage or a cookie
+        localStorage.setItem('token', token);
+
+        // Log the user in (this updates the context)
+        dispatch({ type: 'SET_USER', payload: user });
+
+        // Navigate to the home page or the intended route
+        navigate('/home');
+      }
+    } catch (err) {
+      setError('An error occurred during login. Please try again.');
+    }
+
+
+  };
+
+  const styles = {
+    container: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr', // Two equal-width columns
+      height: '100vh', // Full viewport height
+    },
+    formContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      padding: '20px',
+      borderRight: '1px solid #ccc',
+    },
+    formGroup: {
+      marginBottom: '15px',
+      width: '80%'
+    },
+    label: {
+      display: 'block',
+      marginBottom: '5px',
+      color: 'grey'
+    },
+    input: {
+      outline: "none",
+      width: '100%',
+      padding: '8px',
+      background: "transparent",
+      border: "1px solid black",
+      borderTop: "none",
+      borderRight: "none",
+      borderLeft: "none"
+    },
+    button: {
+      width: '84%',
+      padding: '10px',
+      color: 'white',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      marginTop: '10px',
+      backgroundColor: '#e05707'
+    },
+    buttonHover: {
+      backgroundColor: '#e057076e'
+    },
+    error: {
+      color: 'red',
+      marginTop: '10px',
+    },
+    imageContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f0f0f0',
+      borderRight: '1px solid #cdcdcd'
+    },
+    image: {
+      maxWidth: '100%',
+      maxHeight: '100%',
+    },
+    insideContrainer: {
+      width: '80%',
+      margin: '0 auto'
+    },
+    header: {
+      color: '#e05707'
+    },
+    create: {
+      display: 'block',
+      marginBottom: '5px',
+      color: 'grey',
+      fontSize: 'small',
+      cursor: 'pointer',
+    },
+    createHover: {
+      color: 'black',
+      cursor: 'pointer'
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.imageContainer}>
+        <img
+          src={loginImage}
+          alt="LOGO"
+          style={styles.image}
+        />
+      </div>
+      <div style={styles.formContainer}>
+        <div style={styles.insideContrainer}>
+          <h1 style={styles.header}>SECSA Quiz Maker</h1><br /><br />
+          <form onSubmit={handleSubmit}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={styles.input}
+              />
+            </div>
+            {error && <p style={styles.error}>{error}</p>}
+            <button
+              type="submit"
+              style={styles.button}
+              onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+              onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+            >
+              Sign In
+            </button>
+            <p
+              style={styles.create}
+              onMouseOver={(e) => (e.target.style.color = styles.createHover.color)}
+              onMouseOut={(e) => (e.target.style.color = styles.create.color)}
+            ><Link to='/register' style={{ color: 'inherit', textDecoration: 'none' }}>SIGN UP</Link>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Login;

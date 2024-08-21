@@ -73,10 +73,10 @@ header a {
 }
 
 /* new workout form */
-label, input {
+/* label, input {
   display: block;
-}
-input {
+} */
+/* input {
   padding: 10px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -84,7 +84,7 @@ input {
   border: 1px solid #ddd;
   border-radius: 4px;
   box-sizing: border-box;
-}
+} */
 form button {
   background: var(--primary);
   border: 0;
@@ -160,3 +160,5 @@ div.error {
 .desc {
   font-size: 30px;
 }
+
+
