@@ -7,23 +7,12 @@ import { useUserContext } from '../../hooks/useUserContext';
 
 function Login({ onLogin }) {
   const navigate = useNavigate();
-  const { dispatch } = useUserContext(); // Access dispatch here
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const response = await fetch('/api/user/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const json = await response.json();
 
     try {
       const response = await fetch('/api/user/login', {
@@ -37,26 +26,22 @@ function Login({ onLogin }) {
       const json = await response.json();
 
       if (!response.ok) {
-        setError("Username or Password is Inccorect");
+        setError("Username or Password is Incorrect");
       } else {
-        console.log(json);
-        // Assuming the response contains a token and user data
         const { token, user } = json;
 
-        // Save the token in local storage or a cookie
-        localStorage.setItem('token', token);
+        // Save the token in local storage
+        localStorage.setItem('authToken', token);
 
-        // Log the user in (this updates the context)
-        dispatch({ type: 'SET_USER', payload: user });
+        // Update user context or state
+        onLogin(user);
 
-        // Navigate to the home page or the intended route
+        // Navigate to the home page
         navigate('/home');
       }
     } catch (err) {
       setError('An error occurred during login. Please try again.');
     }
-
-
   };
 
   const styles = {

@@ -3,7 +3,7 @@ import loginImage from '../../assets/registerlogo.png';
 import { Link } from 'react-router-dom';
 import { useUserContext } from '../../hooks/useUserContext';
 import { useNavigate } from 'react-router-dom';
-import bcrypt from 'bcryptjs';
+// import bcrypt from 'bcryptjs';
 
 
 function Register() {
@@ -56,10 +56,8 @@ function Register() {
     if (passwordError || passwordMatchError) {
       return;
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-
-    const user = { username, password: hashedPassword, firstName, middleName, lastName };
+    const user = { username, password, firstName, middleName, lastName };
 
     try {
       const response = await fetch('/api/user/register', {
