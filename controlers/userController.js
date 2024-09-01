@@ -7,15 +7,16 @@ const jwt = require('jsonwebtoken');
 
 //create new user
 const createUser = async (req, res) => {
-    const {username, password, firstName, middleName, lastName } = req.body
+    const { username, password, firstName, middleName, lastName } = req.body
 
-    //add doc to db
-    try{
-        const user = await User.create({username, password, firstName, middleName, lastName})
-        res.status(200).json(user)
-    } catch (error) {
-        res.status(400).json({error: error.message})
+    const exist = await User.findOne({ username });
+    if (exist) {
+        res.status(400).json({ error: "Username already exist" })
     }
+    //add doc to db
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, password: hashedPassword, firstName, middleName, lastName })
+    res.status(200).json(user)
 }
 
 const loginUser = async (req, res) => {
@@ -35,7 +36,7 @@ const loginUser = async (req, res) => {
 
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: '1h', // Token expires in 1 hour
+            expiresIn: '1d', // Token expires in 1 hour
         });
 
         if (!isPasswordValid) {
@@ -43,7 +44,7 @@ const loginUser = async (req, res) => {
         }
 
         // If the login is successful, you can return the user data
-        res.status(200).json({ token, user });
+        res.status(200).json({ user, token });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
