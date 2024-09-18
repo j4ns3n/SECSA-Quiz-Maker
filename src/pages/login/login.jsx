@@ -37,7 +37,7 @@ function Login({ onLogin }) {
         onLogin(user);
 
         // Navigate to the home page
-        navigate('/home');
+        navigate('/courses');
       }
     } catch (err) {
       setError('An error occurred during login. Please try again.');
