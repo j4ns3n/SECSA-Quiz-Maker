@@ -6,7 +6,12 @@ const {
     getCourse,
     createCourse,
     deleteCourse,
-    updateCourse
+    updateCourse,
+    addTopicToSubject,
+    deleteTopic,
+    updateTopic,
+    addQuestionToTopic,
+    deleteQuestion
 } = require('../controlers/courseController')
 
 const router = express.Router();
@@ -20,5 +25,17 @@ router.post('/', createCourse)
 router.delete('/:id', deleteCourse)
 
 router.patch('/:id', updateCourse)
+
+router.patch('/:courseId/year/:year/subject/:subjectName/topics', addTopicToSubject);
+
+router.delete('/:courseId/year/:year/subject/:subjectName/topics/:topicId', deleteTopic);
+
+router.patch('/:courseId/year/:year/subject/:subjectName/topics/:topicId', updateTopic);
+
+router.patch('/:courseId/year/:year/subject/:subjectName/topics/:topicName/questions', addQuestionToTopic);
+
+router.delete('/:courseId/year/:year/subject/:subjectName/topics/:topicName/questions/:questionId', deleteQuestion);
+
+
 
 module.exports = router;

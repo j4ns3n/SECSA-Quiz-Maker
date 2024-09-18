@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const courseSchema = new mongoose.Schema({
     courseName: {type: String, required: true},
@@ -8,15 +9,19 @@ const courseSchema = new mongoose.Schema({
             year: {type: String},
             subjects: [
                 {
+                    subjectCode: {type: String},
                     subjectName: {type: String},
                     topics: [
                         {
                             topicName: {type: String},
+                            topicDesc: {type: String},
                             questions: [
                                 {
+                                    type: {type: String},
+                                    difficulty: {type: String},
                                     questionText: {type: String},
-                                    choices: [],
-                                    answer: {type: Number}
+                                    choices: [{type: String}],
+                                    answer: { type: Schema.Types.Mixed }
                                 }
                             ]
                         }
