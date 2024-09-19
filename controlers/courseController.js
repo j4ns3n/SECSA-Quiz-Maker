@@ -213,7 +213,7 @@ const updateTopic = async (req, res) => {
 
 const addQuestionToTopic = async (req, res) => {
     const { courseId, year, subjectName, topicName } = req.params;
-    const { type, difficulty, questionText, choices, answer } = req.body; // Destructure question fields from the request body
+    const { type, difficulty, questionText, choices, answer } = req.body;
 
     try {
         const course = await Course.findById(courseId);
@@ -290,12 +290,6 @@ const deleteQuestion = async (req, res) => {
             return res.status(404).json({ message: 'Topic not found' });
         }
 
-        // Log data after retrieval
-        console.log('Found course:', course);
-        console.log('Found year level:', yearLevel);
-        console.log('Found subject:', subject);
-        console.log('Found topic:', topic);
-
         // Remove the question by its _id
         topic.questions = topic.questions.filter(q => q._id.toString() !== questionId);
 
@@ -310,6 +304,61 @@ const deleteQuestion = async (req, res) => {
 };
 
 
+const updateQuestion = async (req, res) => {
+    const { courseId, year, subjectName, topicName, questionId } = req.params;
+    const updatedQuestion = req.body; // Updated question details
+
+    try {
+        // Fetch the course by ID
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        // Find the year level
+        const yearLevel = course.yearLevels.find(y => y.year === year);
+        if (!yearLevel) {
+            return res.status(404).json({ message: 'Year level not found' });
+        }
+
+        // Find the subject
+        const subject = yearLevel.subjects.find(s => s.subjectName === subjectName);
+        if (!subject) {
+            return res.status(404).json({ message: 'Subject not found' });
+        }
+
+        // Find the topic
+        const topic = subject.topics.find(t => t.topicName === topicName);
+        if (!topic) {
+            return res.status(404).json({ message: 'Topic not found' });
+        }
+
+        // Find the question within the topic
+        const questionIndex = topic.questions.findIndex(q => q._id.toString() === questionId);
+        if (questionIndex === -1) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        // Update the question
+        topic.questions[questionIndex] = { 
+            ...topic.questions[questionIndex].toObject(),  // Spread existing question
+            ...updatedQuestion  // Merge updated fields
+        };
+
+        // Save the course
+        await course.save();
+
+        // Respond with the updated question
+        res.status(200).json({ updatedQuestion: topic.questions[questionIndex] });
+    } catch (error) {
+        console.error('Update question error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
+
 
 
 module.exports = {
@@ -322,5 +371,6 @@ module.exports = {
     deleteTopic,
     updateTopic,
     addQuestionToTopic,
-    deleteQuestion
+    deleteQuestion,
+    updateQuestion
 }
