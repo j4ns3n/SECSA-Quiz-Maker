@@ -17,7 +17,9 @@ import {
     Select,
     RadioGroup,
     FormControlLabel,
-    Radio
+    Radio,
+    Alert,
+    Snackbar,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -26,6 +28,8 @@ import FormControl from '@mui/material/FormControl';
 
 const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack, onQuestionAdded }) => {
     const [difficulty, setDifficulty] = useState('');
+    const [open, setOpen] = useState(false);
+    const [deleteSnack, setDeleteSnack] = useState(false);
     const [type, setType] = useState('');
     const [question, setQuestion] = useState('');
     const [correctAnswer, setCorrectAnswer] = useState('');
@@ -36,6 +40,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         choice4: ''
     });
     const [questions, setQuestions] = useState(topic.questions || []);
+    const [editingQuestion, setEditingQuestion] = useState(null);  // To track the question being edited
 
     const handleChangeDifficulty = (event) => {
         setDifficulty(event.target.value);
@@ -56,6 +61,14 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             ...choices,
             [event.target.name]: event.target.value
         });
+    };
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpen(false);
+        setDeleteSnack(false); // Close delete alert
     };
 
     const handleQuestionChange = (event) => {
@@ -94,16 +107,46 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
 
                 setQuestions([...questions, result.newQuestion]);
 
-                setQuestion('');
-                setChoices({ choice1: '', choice2: '', choice3: '', choice4: '' });
-                setCorrectAnswer('');
-                setDifficulty('');
-                setType('');
+                resetForm();
             } else {
                 console.error('Failed to add question');
             }
         } catch (err) {
             console.error('Error adding question:', err);
+        }
+    };
+
+    const updateQuestion = async () => {
+        const questionData = {
+            type,
+            difficulty,
+            questionText: question,
+            choices: Object.values(choices).filter(choice => choice !== ''),
+            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) : correctAnswer
+        };
+
+        console.log(editingQuestion._id);
+
+        try {
+            const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions/${editingQuestion._id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(questionData),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const updatedQuestions = questions.map(q => (q._id === result.updatedQuestion._id ? result.updatedQuestion : q));
+                setOpen(true);
+                setQuestions(updatedQuestions);
+                resetForm();
+            } else {
+                console.error('Failed to update question');
+            }
+        } catch (err) {
+            console.error('Error updating question:', err);
         }
     };
 
@@ -117,6 +160,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 const result = await response.json();
                 console.log('Question deleted successfully', result);
                 setQuestions(result.updatedQuestions);
+                setDeleteSnack(true);
             } else {
                 console.error('Failed to delete question');
             }
@@ -125,10 +169,58 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         }
     };
 
+    const startEditing = (question) => {
+        setEditingQuestion(question);
+        setType(question.type);
+        setDifficulty(question.difficulty);
+        setQuestion(question.questionText);
+        if (question.type === 'Multiple Choice') {
+            setChoices({
+                choice1: question.choices[0] || '',
+                choice2: question.choices[1] || '',
+                choice3: question.choices[2] || '',
+                choice4: question.choices[3] || ''
+            });
+            setCorrectAnswer(`choice${question.answer + 1}`);
+        } else {
+            setCorrectAnswer(question.answer);
+        }
+    };
 
+    const resetForm = () => {
+        setQuestion('');
+        setChoices({ choice1: '', choice2: '', choice3: '', choice4: '' });
+        setCorrectAnswer('');
+        setDifficulty('');
+        setType('');
+        setEditingQuestion(null); // Reset the editing state
+    };
 
     return (
         <Box>
+
+            <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}>
+                <Alert
+                    onClose={handleClose}
+                    severity="success"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    Question updated successfully!
+                </Alert>
+            </Snackbar>
+
+            <Snackbar open={deleteSnack} autoHideDuration={2000} onClose={handleClose}>
+                <Alert
+                    onClose={handleClose}
+                    severity="success"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    Question deleted successfully!
+                </Alert>
+            </Snackbar>
+
             <br /><br />
             <Typography variant="h5" gutterBottom>
                 Questions for {topic.topicName}
@@ -281,15 +373,39 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             )}
 
             <br /><br />
-            <Button
-                size="large"
-                color="primary"
-                variant="outlined"
-                sx={{ paddingBottom: '4px' }}
-                onClick={addQuestion}
-            >
-                Submit
-            </Button>
+            {editingQuestion ? (
+                <>
+                    <Button
+                        size="large"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ paddingBottom: '4px' }}
+                        onClick={updateQuestion}
+                    >
+                        Update
+                    </Button>
+                    <Button
+                        size="large"
+                        color="error"
+                        variant="outlined"
+                        sx={{ paddingBottom: '4px', ml: 2 }}
+                        onClick={resetForm}
+                    >
+                        Cancel
+                    </Button>
+                </>
+            ) : (
+                <Button
+                    size="large"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ paddingBottom: '4px' }}
+                    onClick={addQuestion}
+                >
+                    Submit
+                </Button>
+            )}
+
             <br /><br />
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="questions table">
@@ -308,7 +424,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                 <TableCell>{question.difficulty}</TableCell>
                                 <TableCell>{question.type}</TableCell>
                                 <TableCell>
-                                    <IconButton >
+                                    <IconButton onClick={() => startEditing(question)}>
                                         <EditIcon sx={{ color: blue[600] }} />
                                     </IconButton>
                                     <IconButton onClick={() => deleteQuestion(question._id)}>

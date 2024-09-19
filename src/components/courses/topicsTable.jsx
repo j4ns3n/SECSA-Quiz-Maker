@@ -30,6 +30,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     const [editingTopicId, setEditingTopicId] = useState(null); // State for editing a topic
     const [open, setOpen] = useState(false);
     const [deleteAlertOpen, setDeleteAlertOpen] = useState(false); // For delete success message
+    const [updateAlert, setUpdateAlert] = useState(false); // For delete success message
     const [viewingQuestions, setViewingQuestions] = useState(false); // To toggle between topics and questions
     const [selectedTopic, setSelectedTopicId] = useState(null); // Track the selected topic for questions
 
@@ -58,6 +59,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     };
 
     const addTopic = async (e) => {
+        if (editingTopicId) return;
         e.preventDefault();
 
         const newTopic = { topicName, topicDesc, questions };
@@ -113,7 +115,6 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     };
 
     const editTopic = async () => {
-        if (!editingTopicId) return;
 
         const updatedTopic = { topicName, topicDesc, questions };
 
@@ -137,7 +138,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                 setEditingTopicId(null);
                 setTopicName('');
                 setDescription('');
-                setOpen(true);
+                setUpdateAlert(true);
             } else {
                 console.error('Failed to update topic');
             }
@@ -200,7 +201,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                     topic={selectedTopic}
                     questions={questions} // Pass questions directly
                     onBack={handleBackToTopics}
-                    onQuestionAdded={handleQuestionAdded}  
+                    QuestionAdded={handleQuestionAdded}  
                 />
             ) : (
                 <>
@@ -211,7 +212,17 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                             variant="filled"
                             sx={{ width: '100%' }}
                         >
-                            {editingTopicId ? 'Topic updated successfully!' : 'Topic added successfully!'}
+                            Topic added successfully!
+                        </Alert>
+                    </Snackbar>
+                    <Snackbar open={updateAlert} autoHideDuration={2000} onClose={handleClose}>
+                        <Alert
+                            onClose={handleClose}
+                            severity="success"
+                            variant="filled"
+                            sx={{ width: '100%' }}
+                        >
+                            Topic updated successfully!
                         </Alert>
                     </Snackbar>
 
@@ -257,7 +268,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                         variant="outlined"
                         sx={{ paddingBottom: '4px' }}
                         onClick={editingTopicId ? editTopic : addTopic}
-                        onQuestionAdded={handleQuestionAdded}
+                        QuestionAdded={handleQuestionAdded}
                     >
                         {editingTopicId ? 'Update' : 'Submit'}
                     </Button>

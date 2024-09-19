@@ -65,7 +65,8 @@ const CourseTable = ({ course, onBack }) => {
         />
       ) : (
         <>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h5" gutterBottom>
+            <br />
             {course?.desc}
             <br />
             <br />
