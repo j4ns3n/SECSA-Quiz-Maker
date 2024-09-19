@@ -57,10 +57,10 @@ const CourseTable = ({ course, onBack }) => {
   return (
     <Box>
       {selectedSubject ? (
-        <TopicsTable 
-          subject={selectedSubject} 
-          courseId={course._id} 
-          selectedYearLevel={selectedYear} 
+        <TopicsTable
+          subject={selectedSubject}
+          courseId={course._id}
+          selectedYearLevel={selectedYear}
           onBack={handleBackToSubjects} // Pass handleBackToSubjects
         />
       ) : (

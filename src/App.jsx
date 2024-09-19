@@ -47,7 +47,7 @@ function AppRoutes() {
       {/* Redirect to courses if authenticated */}
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/courses" replace /> : <Login onLogin={handleLogin} />}
+        element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />}
       />
       <Route path="/register" element={<Register />} />
       {/* Protected routes */}
@@ -64,7 +64,7 @@ function CourseApp({ onLogout }) {
     <CourseContextProvider>
       <div className="pages">
         <Routes>
-          <Route path="/courses" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
           {/* Add a route for logout that triggers the onLogout */}
           <Route
             path="/logout"

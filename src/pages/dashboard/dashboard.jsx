@@ -8,13 +8,14 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { orange } from '@mui/material/colors';
-import { useNavigate } from 'react-router-dom'; // useNavigate hook for redirection
+import { useNavigate } from 'react-router-dom';
 import LogoSecsa from '../../assets/secsalogo.png';
 import { useCoursesContext } from '../../hooks/useCourseContext';
 import CourseCards from '../../components/courses/courseCards';
-import CourseTable from '../../components/courses/courseTable';
 import { useEffect } from "react"
 
+
+// Navigation config
 const NAVIGATION = [
   {
     segment: 'courses',
@@ -38,6 +39,7 @@ const NAVIGATION = [
   },
 ];
 
+// Theme setup
 const demoTheme = createTheme({
   palette: {
     primary: {
@@ -60,31 +62,12 @@ const demoTheme = createTheme({
   },
 });
 
+
+
+
 function DemoPageContent({ pathname }) {
+
   const { courses, dispatch } = useCoursesContext();
-  const [selectedCourse, setSelectedCourse] = React.useState(null);
-
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    sessionStorage.clear();
-    localStorage.clear();
-    navigate('/login');
-  };
-
-  useEffect(() => {
-    if (pathname === '/logout') {
-      handleLogout();
-    }
-  }, [pathname]);
-
-  const handleViewDetails = (course) => {
-    setSelectedCourse(course);
-  };
-
-  const handleBackToCourses = () => {
-    setSelectedCourse(null);
-  };
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -99,15 +82,21 @@ function DemoPageContent({ pathname }) {
     fetchCourse();
   }, [dispatch]);
 
-  return (
-    <>
-      {!selectedCourse ? (
-        <CourseCards courses={courses} onView={handleViewDetails} />
-      ) : (
-        <CourseTable course={selectedCourse} onBack={handleBackToCourses} />
-      )}
-    </>
-  );
+  // This function will render different components based on the current path
+  const renderContent = () => {
+    switch (pathname) {
+      case '/courses':
+        return <CourseCards courses={courses} />;
+      case '/exams':
+        return <div>Exams Component Placeholder</div>; // Replace with your Exams component
+      case '/users':
+        return <div>Users Component Placeholder</div>; // Replace with your Users component
+      default:
+        return <div>Page Not Found</div>;
+    }
+  };
+
+  return <>{renderContent()}</>;
 }
 
 DemoPageContent.propTypes = {
@@ -118,19 +107,36 @@ function Dashboard(props) {
   console.log(localStorage.getItem('authToken'));
   const { window } = props;
 
-  const [pathname, setPathname] = React.useState('/courses');
+  const [pathname, setPathname] = React.useState('/courses'); // Default route is /courses
+  const navigate = useNavigate(); // React Router's navigate
 
-  const router = React.useMemo(() => ({
-    pathname,
-    searchParams: new URLSearchParams(),
-    navigate: (path) => setPathname(String(path)),
-  }), [pathname]);
+  const handleNavigation = (segment) => {
+    if (segment === 'logout') {
+      sessionStorage.clear();
+      localStorage.clear();
+      navigate('/login'); // Navigate to login page on logout
+    } else {
+      setPathname(`/${segment}`); // Set the path based on clicked segment
+    }
+  };
+
+  const router = React.useMemo(
+    () => ({
+      pathname,
+      searchParams: new URLSearchParams(),
+      navigate: (path) => setPathname(String(path)),
+    }),
+    [pathname]
+  );
 
   const demoWindow = window !== undefined ? window() : undefined;
 
   return (
     <AppProvider
-      navigation={NAVIGATION}
+      navigation={NAVIGATION.map((navItem) => ({
+        ...navItem,
+        onClick: () => handleNavigation(navItem.segment), // Attach onClick handler to navigation items
+      }))}
       branding={{
         logo: <img src={LogoSecsa} alt="SECSA logo" />,
         title: 'SECSA Quiz Maker',
