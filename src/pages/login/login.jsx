@@ -3,7 +3,6 @@ import loginImage from '../../assets/loginlogo.png'
 import { Link } from 'react-router-dom';
 // import bcrypt from 'bcryptjs';
 import { useNavigate } from 'react-router-dom';
-import { useUserContext } from '../../hooks/useUserContext';
 
 function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -28,16 +27,17 @@ function Login({ onLogin }) {
       if (!response.ok) {
         setError("Username or Password is Incorrect");
       } else {
-        const { token, user } = json;
+        const { token } = json;
+        console.log(token);
 
         // Save the token in local storage
         localStorage.setItem('authToken', token);
 
         // Update user context or state
-        onLogin(user);
+        onLogin(token);
 
         // Navigate to the home page
-        navigate('/courses');
+        navigate('/');
       }
     } catch (err) {
       setError('An error occurred during login. Please try again.');

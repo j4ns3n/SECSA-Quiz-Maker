@@ -33,7 +33,7 @@ function AppRoutes() {
   }, [location]); // Re-run auth check whenever location (route) changes
 
   const handleLogin = () => {
-    localStorage.setItem('authToken', 'your_token_here'); // Set token on login
+    localStorage.setItem('authToken', localStorage.getItem('authToken')); // Set token on login
     setIsAuthenticated(true);
   };
 
@@ -59,17 +59,12 @@ function AppRoutes() {
   );
 }
 
-function CourseApp({ onLogout }) {
+function CourseApp() {
   return (
     <CourseContextProvider>
       <div className="pages">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          {/* Add a route for logout that triggers the onLogout */}
-          <Route
-            path="/logout"
-            element={<Navigate to="/login" replace />}  // Redirect after logout
-          />
         </Routes>
       </div>
     </CourseContextProvider>

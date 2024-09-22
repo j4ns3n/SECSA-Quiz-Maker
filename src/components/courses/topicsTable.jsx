@@ -201,7 +201,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                     topic={selectedTopic}
                     questions={questions} // Pass questions directly
                     onBack={handleBackToTopics}
-                    QuestionAdded={handleQuestionAdded}  
+                    questionadded={handleQuestionAdded}  
                 />
             ) : (
                 <>
@@ -268,7 +268,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                         variant="outlined"
                         sx={{ paddingBottom: '4px' }}
                         onClick={editingTopicId ? editTopic : addTopic}
-                        QuestionAdded={handleQuestionAdded}
+                        questionadded={handleQuestionAdded}
                     >
                         {editingTopicId ? 'Update' : 'Submit'}
                     </Button>

@@ -12,7 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import LogoSecsa from '../../assets/secsalogo.png';
 import { useCoursesContext } from '../../hooks/useCourseContext';
 import CourseCards from '../../components/courses/courseCards';
-import { useEffect } from "react"
+import { useEffect } from "react";
+import Exam from '../../components/exam/exam';
 
 
 // Navigation config
@@ -62,10 +63,7 @@ const demoTheme = createTheme({
   },
 });
 
-
-
-
-function DemoPageContent({ pathname }) {
+function DemoPageContent({ pathname, onLogout }) {
 
   const { courses, dispatch } = useCoursesContext();
 
@@ -82,15 +80,17 @@ function DemoPageContent({ pathname }) {
     fetchCourse();
   }, [dispatch]);
 
-  // This function will render different components based on the current path
   const renderContent = () => {
     switch (pathname) {
       case '/courses':
         return <CourseCards courses={courses} />;
       case '/exams':
-        return <div>Exams Component Placeholder</div>; // Replace with your Exams component
+        return <Exam />;
       case '/users':
-        return <div>Users Component Placeholder</div>; // Replace with your Users component
+        return <div>Users Component Placeholder</div>;
+      case '/logout':
+        onLogout();
+        return null;
       default:
         return <div>Page Not Found</div>;
     }
@@ -101,23 +101,20 @@ function DemoPageContent({ pathname }) {
 
 DemoPageContent.propTypes = {
   pathname: PropTypes.string.isRequired,
+  onLogout: PropTypes.func.isRequired,
 };
 
 function Dashboard(props) {
-  console.log(localStorage.getItem('authToken'));
+
   const { window } = props;
 
-  const [pathname, setPathname] = React.useState('/courses'); // Default route is /courses
-  const navigate = useNavigate(); // React Router's navigate
+  const [pathname, setPathname] = React.useState('/courses');
+  const navigate = useNavigate();
 
-  const handleNavigation = (segment) => {
-    if (segment === 'logout') {
-      sessionStorage.clear();
-      localStorage.clear();
-      navigate('/login'); // Navigate to login page on logout
-    } else {
-      setPathname(`/${segment}`); // Set the path based on clicked segment
-    }
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    navigate('/login', { replace: true });
   };
 
   const router = React.useMemo(
@@ -135,7 +132,7 @@ function Dashboard(props) {
     <AppProvider
       navigation={NAVIGATION.map((navItem) => ({
         ...navItem,
-        onClick: () => handleNavigation(navItem.segment), // Attach onClick handler to navigation items
+        onClick: () => setPathname(`/${navItem.segment}`),
       }))}
       branding={{
         logo: <img src={LogoSecsa} alt="SECSA logo" />,
@@ -146,7 +143,7 @@ function Dashboard(props) {
       window={demoWindow}
     >
       <DashboardLayout>
-        <DemoPageContent pathname={pathname} />
+        <DemoPageContent pathname={pathname} onLogout={handleLogout} />
       </DashboardLayout>
     </AppProvider>
   );
