@@ -12,10 +12,15 @@ export const examReducer = (state, action) => {
       return {
         exams: [action.payload, ...state.exams],
       };
+    case 'DELETE_EXAM':
+      return {
+        exams: state.exams.filter(exam => exam._id !== action.payload),
+      };
     default:
       return state;
   }
 };
+
 
 export const ExamContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(examReducer, {

@@ -61,7 +61,7 @@ const CourseTable = ({ course, onBack }) => {
           subject={selectedSubject}
           courseId={course._id}
           selectedYearLevel={selectedYear}
-          onBack={handleBackToSubjects} // Pass handleBackToSubjects
+          onBack={handleBackToSubjects}
         />
       ) : (
         <>
@@ -100,6 +100,7 @@ const CourseTable = ({ course, onBack }) => {
             <Table sx={{ minWidth: 650 }} aria-label="course table">
               <TableHead>
                 <TableRow sx={{ color: orange }}>
+                  <TableCell>No.</TableCell>
                   <TableCell>Subject Code</TableCell>
                   <TableCell>Description</TableCell>
                   <TableCell>Topics</TableCell>
@@ -110,6 +111,7 @@ const CourseTable = ({ course, onBack }) => {
                 {selectedYearSubjects.length > 0 ? (
                   selectedYearSubjects.map((subject, index) => (
                     <TableRow key={index}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell sx={{ maxWidth: 251 }}>{subject.subjectName}</TableCell>
                       <TableCell>{subject.desc}</TableCell>
                       <TableCell>{subject.topics.length}</TableCell>

@@ -13,7 +13,10 @@ import {
     TableHead,
     TableRow,
     Paper,
-    Button
+    Button,
+    Snackbar,
+    Alert,
+    Input
 } from '@mui/material';
 import { useCoursesContext } from '../../hooks/useCourseContext';
 
@@ -27,6 +30,9 @@ const CreateExam = () => {
     const [topics, setTopics] = useState([]);
     const [selectedQuestions, setSelectedQuestions] = useState({});
     const [errors, setErrors] = useState({});
+    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
+
 
     const { courses, dispatch } = useCoursesContext();
 
@@ -43,10 +49,18 @@ const CreateExam = () => {
         fetchCourse();
     }, [dispatch]);
 
+
+    const handleAlertClose = () => {
+        setAlerts({ ...alerts, open: false });
+    };
+
     const handleCourseChange = (event) => {
         const courseName = event.target.value;
         setSelectedCourse(courseName);
         setErrors((prev) => ({ ...prev, course: '' })); // Clear error
+        setSelectedSubjects([]);
+        setTopics([]);
+        setSelectedQuestions({});
 
         const selectedCourseData = courses.find(course => course.courseName === courseName);
         if (selectedCourseData) {
@@ -58,14 +72,20 @@ const CreateExam = () => {
         }
     };
 
+
     const handleYearLevelChange = (event) => {
         const yearLevel = event.target.value;
         setSelectedYearLevel(yearLevel);
         setSelectedSubject('');
         setErrors((prev) => ({ ...prev, yearLevel: '' })); // Clear error
+        setSelectedSubjects([]);
+        setTopics([]);
+        setSelectedQuestions({}); // Clear selected questions
 
         const selectedCourseData = courses.find(course => course.courseName === selectedCourse);
         if (selectedCourseData) {
+            setSelectedSubjects([]);
+            setTopics([]);
             const yearLevelData = selectedCourseData.yearLevels.find(yl => yl.year === yearLevel);
             if (yearLevelData) {
                 setSubjects(yearLevelData.subjects);
@@ -73,44 +93,94 @@ const CreateExam = () => {
         }
     };
 
+
+
     const handleSubjectChange = (event) => {
         const subject = event.target.value;
-        setSelectedSubject(subject);
-        setErrors((prev) => ({ ...prev, subject: '' })); // Clear error
+        const isChecked = event.target.checked;
 
-        const subjectData = subjects.find(sub => sub.subjectName === subject);
-        if (subjectData) {
-            const updatedTopics = subjectData.topics.map(topic => {
-                const difficultyCount = { easy: 0, medium: 0, hard: 0, total: 0 };
+        // If subject is being selected (checked)
+        if (isChecked) {
+            setSelectedSubjects((prevSelectedSubjects) => [...prevSelectedSubjects, subject]);
+            setErrors((prev) => ({ ...prev, subject: '' })); // Clear error
 
-                topic.questions.forEach(question => {
-                    if (question.difficulty === "Easy") {
-                        difficultyCount.easy++;
-                    } else if (question.difficulty === "Medium") {
-                        difficultyCount.medium++;
-                    } else if (question.difficulty === "Hard") {
-                        difficultyCount.hard++;
-                    }
+            // Find the selected subject's data
+            const subjectData = subjects.find((sub) => sub.subjectName === subject);
+            if (subjectData) {
+                const updatedTopics = subjectData.topics.map((topic) => {
+                    const difficultyCount = { easy: 0, medium: 0, hard: 0, total: 0 };
+
+                    // Calculate the difficulty count for the topic
+                    topic.questions.forEach((question) => {
+                        if (question.difficulty === "Easy") {
+                            difficultyCount.easy++;
+                        } else if (question.difficulty === "Medium") {
+                            difficultyCount.medium++;
+                        } else if (question.difficulty === "Hard") {
+                            difficultyCount.hard++;
+                        }
+                    });
+
+                    difficultyCount.total = difficultyCount.easy + difficultyCount.medium + difficultyCount.hard;
+
+                    return {
+                        ...topic,
+                        difficultyCount,
+                    };
                 });
 
-                difficultyCount.total = difficultyCount.easy + difficultyCount.medium + difficultyCount.hard;
+                // Combine new topics with already selected topics
+                setTopics((prevTopics) => [...prevTopics, ...updatedTopics]);
+            }
+        } else {
+            // If the subject is being unselected (unchecked), remove it
+            setSelectedSubjects((prevSelectedSubjects) =>
+                prevSelectedSubjects.filter((sub) => sub !== subject)
+            );
 
-                return {
-                    ...topic,
-                    difficultyCount
-                };
+            // Clear selected questions when the subject is unchecked
+            setSelectedQuestions({}); // Clear selected questions
+
+            // Remove topics related to the unchecked subject
+            const remainingSubjects = selectedSubjects.filter((sub) => sub !== subject);
+            const updatedTopics = remainingSubjects.flatMap((remainingSubject) => {
+                const subjectData = subjects.find((sub) => sub.subjectName === remainingSubject);
+                if (subjectData) {
+                    return subjectData.topics.map((topic) => {
+                        const difficultyCount = { easy: 0, medium: 0, hard: 0, total: 0 };
+
+                        topic.questions.forEach((question) => {
+                            if (question.difficulty === "Easy") {
+                                difficultyCount.easy++;
+                            } else if (question.difficulty === "Medium") {
+                                difficultyCount.medium++;
+                            } else if (question.difficulty === "Hard") {
+                                difficultyCount.hard++;
+                            }
+                        });
+
+                        difficultyCount.total = difficultyCount.easy + difficultyCount.medium + difficultyCount.hard;
+
+                        return {
+                            ...topic,
+                            difficultyCount,
+                        };
+                    });
+                }
+                return [];
             });
 
-            setTopics(updatedTopics);
+            setTopics(updatedTopics); // Set topics based on the remaining selected subjects
         }
     };
+
+
 
     const handleSubmit = async () => {
         const newErrors = {};
         if (!title) newErrors.title = "Title is required";
         if (!selectedCourse) newErrors.course = "Course is required";
-        if (!selectedYearLevel) newErrors.yearLevel = "Year Level is required";
-        if (!selectedSubject) newErrors.subject = "Subject is required";
+        if (selectedSubjects.length === 0) newErrors.subject = "At least one Subject is required";
 
         setErrors(newErrors);
 
@@ -128,8 +198,9 @@ const CreateExam = () => {
                 topics: examData
             };
 
-            console.log(examSummary);
+            console.log(examSummary); // Check your exam summary before submission
 
+            // Submit the exam data to the server
             try {
                 const response = await fetch('/api/exams', {
                     method: 'POST',
@@ -143,13 +214,24 @@ const CreateExam = () => {
                     throw new Error('Failed to create exam');
                 }
 
-                const data = await response.json();
-                console.log('Exam created successfully:', data);
+                setAlerts({ open: true, message: 'Exam Created successfully!', severity: 'success' });
+
+                // Reset form fields
+                setTitle('');
+                setSelectedCourse('');
+                setSelectedYearLevel('');
+                setSelectedSubjects([]);
+                setTopics([]);
+                setSelectedQuestions({});
+                setErrors({});
+                setSubjects([]);
+
             } catch (error) {
                 console.error('Error creating exam:', error);
             }
         }
     };
+
 
     const handleSelectChange = (topicIndex, difficulty, count) => {
         const topic = topics[topicIndex];
@@ -157,23 +239,45 @@ const CreateExam = () => {
             (question) => question.difficulty.toLowerCase() === difficulty
         );
 
-        const selected = questionsForDifficulty.slice(0, count);
+        // Ensure count is a number and non-negative
+        const countValue = Math.max(0, parseInt(count, 10) || 0);
+        const selected = questionsForDifficulty.slice(0, countValue);
+
         setSelectedQuestions(prevSelectedQuestions => {
             const updatedSelection = { ...prevSelectedQuestions };
+
+            // Initialize topic index if it doesn't exist
             if (!updatedSelection[topicIndex]) {
                 updatedSelection[topicIndex] = {
                     easy: [],
                     intermediate: [],
-                    difficult: []
+                    difficult: [],
                 };
             }
-            updatedSelection[topicIndex][difficulty] = selected;
+
+            // Update the selected difficulty
+            updatedSelection[topicIndex] = {
+                ...updatedSelection[topicIndex],
+                [difficulty]: selected,
+            };
+
             return updatedSelection;
         });
     };
 
+
     return (
         <>
+            <Snackbar open={alerts.open} autoHideDuration={2000} onClose={handleAlertClose}>
+                <Alert
+                    onClose={handleAlertClose}
+                    severity={alerts.severity}
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {alerts.message}
+                </Alert>
+            </Snackbar>
             <Typography variant="h5" gutterBottom>
                 <br />
                 Create an Exam
@@ -235,23 +339,23 @@ const CreateExam = () => {
                 {errors.yearLevel && <p style={{ color: 'red' }}>{errors.yearLevel}</p>}
             </FormControl>
 
+            <br />
+            <br />
             {/* Subject Select */}
             <FormControl required sx={{ minWidth: 300, mr: 3 }} disabled={!selectedYearLevel || subjects.length === 0} error={!!errors.subject}>
-                <InputLabel id="select-subject-label">Subject</InputLabel>
-                <Select
-                    labelId="select-subject-label"
-                    id="select-subject"
-                    value={selectedSubject || ''}
-                    label="Subject"
-                    onChange={handleSubjectChange}
-                >
-                    {subjects.map((subject, index) => (
-                        <MenuItem key={index} value={subject.subjectName}>
-                            {subject.subjectName}
-                        </MenuItem>
+                <div>
+                    {subjects.map((subject) => (
+                        <label key={subject._id}>
+                            <input
+                                type="checkbox"
+                                value={subject.subjectName}
+                                onChange={handleSubjectChange}
+                                checked={selectedSubjects.includes(subject.subjectName)}
+                            />
+                            {subject.subjectName} <br />
+                        </label>
                     ))}
-                </Select>
-                {errors.subject && <p style={{ color: 'red' }}>{errors.subject}</p>}
+                </div>
             </FormControl>
             <br />
             <br />
@@ -261,6 +365,7 @@ const CreateExam = () => {
                 <Table sx={{ minWidth: 650 }} aria-label="topics table">
                     <TableHead>
                         <TableRow>
+                            <TableCell>No.</TableCell>
                             <TableCell>Topic Name</TableCell>
                             <TableCell>Easy</TableCell>
                             <TableCell>Intermediate</TableCell>
@@ -271,47 +376,45 @@ const CreateExam = () => {
                     <TableBody>
                         {topics.map((topic, index) => (
                             <TableRow key={index}>
+                                <TableCell>{index + 1}</TableCell>
                                 <TableCell>{topic.topicName}</TableCell>
 
-                                {/* Easy Dropdown */}
                                 <TableCell>
-                                    <FormControl sx={{ minWidth: 100 }}>
-                                        <Select
+                                    <FormControl sx={{ maxWidth: 50, display: 'flex', alignItems: 'center' }}>
+                                        <Input
+                                            type="number"
                                             value={selectedQuestions[index]?.easy?.length || 0}
                                             onChange={(e) => handleSelectChange(index, 'easy', e.target.value)}
-                                        >
-                                            {[...Array(topic.questions.filter(q => q.difficulty.toLowerCase() === 'easy').length + 1)].map((_, i) => (
-                                                <MenuItem key={i} value={i}>{i}</MenuItem>
-                                            ))}
-                                        </Select>
+                                        />
+                                        <Typography variant="body2" color="textSecondary">
+                                            ({topic.questions.filter(q => q.difficulty.toLowerCase() === 'easy').length})
+                                        </Typography>
                                     </FormControl>
                                 </TableCell>
 
-                                {/* Intermediate Dropdown */}
                                 <TableCell>
-                                    <FormControl sx={{ minWidth: 100 }}>
-                                        <Select
+                                    <FormControl sx={{ maxWidth: 50, display: 'flex', alignItems: 'center' }}>
+                                        <Input
+                                            type="number"
                                             value={selectedQuestions[index]?.intermediate?.length || 0}
                                             onChange={(e) => handleSelectChange(index, 'intermediate', e.target.value)}
-                                        >
-                                            {[...Array(topic.questions.filter(q => q.difficulty.toLowerCase() === 'intermediate').length + 1)].map((_, i) => (
-                                                <MenuItem key={i} value={i}>{i}</MenuItem>
-                                            ))}
-                                        </Select>
+                                        />
+                                        <Typography variant="body2" color="textSecondary">
+                                            ({topic.questions.filter(q => q.difficulty.toLowerCase() === 'intermediate').length})
+                                        </Typography>
                                     </FormControl>
                                 </TableCell>
 
-                                {/* Difficult Dropdown */}
                                 <TableCell>
-                                    <FormControl sx={{ minWidth: 100 }}>
-                                        <Select
+                                    <FormControl sx={{ maxWidth: 50, display: 'flex', alignItems: 'center' }}>
+                                        <Input
+                                            type="number"
                                             value={selectedQuestions[index]?.difficult?.length || 0}
                                             onChange={(e) => handleSelectChange(index, 'difficult', e.target.value)}
-                                        >
-                                            {[...Array(topic.questions.filter(q => q.difficulty.toLowerCase() === 'difficult').length + 1)].map((_, i) => (
-                                                <MenuItem key={i} value={i}>{i}</MenuItem>
-                                            ))}
-                                        </Select>
+                                        />
+                                        <Typography variant="body2" color="textSecondary">
+                                            ({topic.questions.filter(q => q.difficulty.toLowerCase() === 'difficult').length})
+                                        </Typography>
                                     </FormControl>
                                 </TableCell>
 
@@ -326,6 +429,7 @@ const CreateExam = () => {
                             </TableRow>
                         ))}
                     </TableBody>
+
                 </Table>
             </TableContainer>
             <br />

@@ -1,16 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useExamContext } from '../../hooks/useExamContext';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, IconButton, Typography } from '@mui/material';
+import {
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, IconButton, Typography, TablePagination,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import { red } from '@mui/material/colors';
-import { Document, Packer, Paragraph, TextRun } from 'docx'; 
-import { saveAs } from 'file-saver'; 
+import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { saveAs } from 'file-saver';
 
 const ViewExam = () => {
   const { exams, dispatch } = useExamContext();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [examId, setExamId] = useState('');
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -31,8 +45,12 @@ const ViewExam = () => {
     fetchExam();
   }, [dispatch]);
 
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
   const handleViewExam = async (exam) => {
-    console.log('Exam Data:', exam); 
+    console.log('Exam Data:', exam);
 
     if (!exam.topics || exam.topics.length === 0) {
       console.error('No topics available');
@@ -181,8 +199,38 @@ const ViewExam = () => {
     saveAs(blob, `${exam.title}-TestPaper.docx`);
   };
 
+  const handleDeleteExam = async () => {
+    try {
+      const response = await fetch(`/api/exams/${examId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete exam');
+      }
+
+      dispatch({ type: 'DELETE_EXAM', payload: examId });
+
+      setAlerts({ open: true, message: 'Exam deleted successfully!', severity: 'success' });
+      setOpenDialog(false);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
 
+  const handleSnackbarClose = () => {
+    setAlerts(false);
+  };
 
   if (loading) {
     return <CircularProgress />;
@@ -194,6 +242,25 @@ const ViewExam = () => {
 
   return (
     <>
+      <Dialog
+        open={openDialog}
+        onClose={handleDialogClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Warning!"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this Exam?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>No</Button>
+          <Button onClick={handleDeleteExam} autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
       <br /><br />
       <Typography variant="h5" gutterBottom>List of Exams</Typography><br /><br />
       <TableContainer component={Paper}>
@@ -208,13 +275,13 @@ const ViewExam = () => {
           </TableHead>
           <TableBody>
             {exams && exams.length > 0 ? (
-              exams.map((exam, index) => (
+              exams.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((exam, index) => (
                 <TableRow key={exam._id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
                   <TableCell>{exam.title}</TableCell>
                   <TableCell>{exam.course}</TableCell>
                   <TableCell>
-                    <IconButton>
+                    <IconButton onClick={() => {setExamId(exam._id); setOpenDialog(true);}}>
                       <DeleteIcon sx={{ color: red[900] }} />
                     </IconButton>
                     <IconButton onClick={() => handleViewExam(exam)}>
@@ -233,6 +300,25 @@ const ViewExam = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={exams.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+      <Snackbar open={alerts.open} autoHideDuration={2000} onClose={handleSnackbarClose}>
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={alerts.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          Exam deleted successfully!
+        </Alert>
+      </Snackbar>
     </>
   );
 };

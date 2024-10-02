@@ -11,9 +11,26 @@ import {
   CardMedia,
 } from '@mui/material';
 import CourseTable from './courseTable'; // Assuming you have CourseTable component
+import { useCoursesContext } from '../../hooks/useCourseContext';
+import { useEffect } from "react";
 
-const CourseCards = ({ courses }) => {
+const CourseCards = () => {
   const [selectedCourse, setSelectedCourse] = React.useState(null); // Track selected course
+  
+  const { courses, dispatch } = useCoursesContext();
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      const response = await fetch('/api/courses');
+      const json = await response.json();
+
+      if (response.ok) {
+        dispatch({ type: 'SET_COURSES', payload: json });
+      }
+    };
+
+    fetchCourse();
+  }, [dispatch]);
 
   const handleViewDetails = (course) => {
     setSelectedCourse(course); // Set the selected course

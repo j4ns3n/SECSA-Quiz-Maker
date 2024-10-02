@@ -10,11 +10,9 @@ import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { orange } from '@mui/material/colors';
 import { useNavigate } from 'react-router-dom';
 import LogoSecsa from '../../assets/secsalogo.png';
-import { useCoursesContext } from '../../hooks/useCourseContext';
 import CourseCards from '../../components/courses/courseCards';
-import { useEffect } from "react";
 import Exam from '../../components/exam/exam';
-
+import UserComponent from '../../components/users/userComponent';
 
 // Navigation config
 const NAVIGATION = [
@@ -65,29 +63,14 @@ const demoTheme = createTheme({
 
 function DemoPageContent({ pathname, onLogout }) {
 
-  const { courses, dispatch } = useCoursesContext();
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      const response = await fetch('/api/courses');
-      const json = await response.json();
-
-      if (response.ok) {
-        dispatch({ type: 'SET_COURSES', payload: json });
-      }
-    };
-
-    fetchCourse();
-  }, [dispatch]);
-
   const renderContent = () => {
     switch (pathname) {
       case '/courses':
-        return <CourseCards courses={courses} />;
+        return <CourseCards />;
       case '/exams':
         return <Exam />;
       case '/users':
-        return <div>Users Component Placeholder</div>;
+        return <UserComponent />
       case '/logout':
         onLogout();
         return null;
