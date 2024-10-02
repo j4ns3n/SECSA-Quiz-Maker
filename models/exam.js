@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const examSchema = new mongoose.Schema({
+const participantSchema = new Schema({
+    participantId: { type: String, required: true },
+    name: { type: String, required: true }, 
+    email: { type: String } 
+});
+
+const examSchema = new Schema({
     title: { type: String, required: true },
     course: { type: String, required: true },
     yearLevel: { type: String, required: true },
-    subject: { type: String, required: true },
+    subject: { type: [String], required: true },
     topics: [
         {
             topicName: { type: String, required: true },
@@ -34,6 +40,8 @@ const examSchema = new mongoose.Schema({
             },
         },
     ],
+    participants: [participantSchema], 
+    totalQuestions: { type: Number, default: 0 }, 
 });
 
 const Exam = mongoose.model('Exam', examSchema);

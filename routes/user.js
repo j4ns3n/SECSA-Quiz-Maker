@@ -3,11 +3,16 @@ require('dotenv').config()
 const express = require('express');
 const {
     createUser,
-    loginUser
+    loginUser,
+    getUsers,
+    deleteUser
 } = require('../controlers/userController')
 
 const router = express.Router();
 
+
+router.get('/', getUsers);
+router.delete('/:id', deleteUser);
 
 // Register a new user
 router.post('/register', createUser);

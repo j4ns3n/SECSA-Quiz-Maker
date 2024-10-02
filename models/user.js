@@ -18,7 +18,18 @@ const userSchema = new Schema({
     middleName: {
         type: String
     },
+    role: {
+        type: String
+    },
     lastName: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    department: {
         type: String,
         required: true
     }
