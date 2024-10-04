@@ -340,7 +340,7 @@ const updateQuestion = async (req, res) => {
         }
 
         // Update the question
-        topic.questions[questionIndex] = { 
+        topic.questions[questionIndex] = {
             ...topic.questions[questionIndex].toObject(),  // Spread existing question
             ...updatedQuestion  // Merge updated fields
         };
@@ -358,6 +358,43 @@ const updateQuestion = async (req, res) => {
 
 
 
+const addSubject = async (req, res) => {
+    const { courseId, yearLevel } = req.params; 
+    const { subjectCode, subjectName } = req.body;
+
+    try {
+        const course = await Course.findById(courseId);
+
+        if (!course) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        const year = course.yearLevels.find(level => level.year === yearLevel);
+
+        if (!year) {
+            return res.status(404).json({ error: 'Year level not found' });
+        }
+
+        year.subjects = year.subjects || []; 
+
+        const newSubject = {
+            subjectCode,
+            subjectName,
+            topics: [], 
+        };
+
+        year.subjects.push(newSubject);
+
+        // Save the course
+        await course.save();
+
+        res.status(200).json(year.subjects);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 
 
 
@@ -372,5 +409,6 @@ module.exports = {
     updateTopic,
     addQuestionToTopic,
     deleteQuestion,
-    updateQuestion
+    updateQuestion,
+    addSubject
 }

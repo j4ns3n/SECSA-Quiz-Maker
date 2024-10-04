@@ -2,7 +2,7 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user')
 const jwt = require('jsonwebtoken');
-// const mongoose = require('mongoose')
+const mongoose = require('mongoose')
 
 
 //create new user
@@ -22,7 +22,7 @@ const createUser = async (req, res) => {
 const getUsers = async (req, res) => {
     try {
         const users = await User.find({ role: { $ne: 'admin' } })
-            .select('-password') 
+            .select('-password')
             .sort({ createdAt: -1 });
 
         res.status(200).json(users);
@@ -50,6 +50,29 @@ const deleteUser = async (req, res) => {
 };
 
 
+const updateUser = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: 'Cant find User' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+        { _id: id },
+        { ...req.body },
+        { new: true } // Add this option to return the updated user
+    );
+
+    if (!user) {
+        return res.status(400).json({ error: "Cant find User" });
+    }
+
+    res.status(200).json(user);
+};
+
+
+
+
 const loginUser = async (req, res) => {
     const { username, password } = req.body;
 
@@ -64,7 +87,7 @@ const loginUser = async (req, res) => {
 
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: '1d', 
+            expiresIn: '1d',
         });
 
         if (!isPasswordValid) {
@@ -83,5 +106,6 @@ module.exports = {
     createUser,
     loginUser,
     getUsers,
-    deleteUser
+    deleteUser,
+    updateUser
 }
