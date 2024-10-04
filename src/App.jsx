@@ -1,10 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Login from './pages/login/login';
 import Register from './pages/register/register';
 import { UserContextProvider } from './context/UserContext/UserContext';
 import { CourseContextProvider } from './context/CourseContext/CourseContext';
 import Dashboard from './pages/dashboard/dashboard';
+import { jwtDecode } from 'jwt-decode';
+
 
 function App() {
   return (
@@ -21,16 +23,39 @@ function App() {
 // Separate component to handle routing and authentication checks
 function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const location = useLocation(); // Hook to track route changes
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Check authentication status whenever the route changes
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('authToken');
-      setIsAuthenticated(!!token); // True if token exists, false otherwise
+
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode(token);
+
+        const currentTime = Date.now() / 1000;
+
+        if (decodedToken.exp < currentTime) {
+          localStorage.removeItem('authToken');
+          setIsAuthenticated(false);
+          navigate('/login');
+        } else {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+        localStorage.removeItem('authToken');
+        navigate('/login');
+      }
     };
+
     checkAuth();
-  }, [location]); // Re-run auth check whenever location (route) changes
+  }, [location, navigate]);
 
   const handleLogin = () => {
     localStorage.setItem('authToken', localStorage.getItem('authToken')); // Set token on login

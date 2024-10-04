@@ -14,7 +14,12 @@ import {
   InputLabel,
   Select,
   FormControl,
-  IconButton
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { orange } from '@mui/material/colors';
@@ -24,6 +29,10 @@ const CourseTable = ({ course, onBack }) => {
   const [selectedYearSubjects, setSelectedYearSubjects] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedSubject, setSelectedSubject] = useState(null);
+
+  // State for dialog and form inputs
+  const [openDialog, setOpenDialog] = useState(false);
+  const [formValues, setFormValues] = useState({ subjectCode: '', subjectName: '', topics: [] });
 
   const handleChange = (event) => {
     const selectedYearLevel = event.target.value;
@@ -53,6 +62,53 @@ const CourseTable = ({ course, onBack }) => {
     }
     setSelectedSubject(null);
   };
+
+  const handleOpenDialog = () => {
+    setFormValues({ subjectName: '', subjectCode: '', topics: [] });
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues({
+      ...formValues,
+      [name]: value,
+    });
+  };
+
+  const handleAddSubject = async () => {
+    try {
+      const response = await fetch(`/api/courses/${course._id}/year/${selectedYear}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subjectCode: formValues.subjectCode,
+          subjectName: formValues.subjectName,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error('Failed to add subject');
+      }
+
+      const updatedSubjects = await response.json();
+
+      setSelectedYearSubjects(updatedSubjects); 
+      handleCloseDialog();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+
 
   return (
     <Box>
@@ -96,6 +152,15 @@ const CourseTable = ({ course, onBack }) => {
             </Typography>
           )}
           <br />
+
+          {/* Show the Add Subject button only when a year level is selected */}
+          {selectedYear && (
+            <Button variant="outlined" onClick={handleOpenDialog}>
+              Add Subject
+            </Button>
+          )}
+          <br />
+          <br />
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="course table">
               <TableHead>
@@ -135,6 +200,42 @@ const CourseTable = ({ course, onBack }) => {
           <Button onClick={onBack} sx={{ mt: 2 }}>
             Back to Courses
           </Button>
+
+          {/* Dialog for Adding Subjects */}
+          <Dialog open={openDialog} onClose={handleCloseDialog}>
+            <DialogTitle>Add Subject</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                name="subjectCode"
+                label="Subject Code"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={formValues.subjectCode}
+                onChange={handleInputChange}
+              />
+              <TextField
+                margin="dense"
+                name="subjectName"
+                label="Subject Name"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={formValues.subjectName}
+                onChange={handleInputChange}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={handleAddSubject} color="primary">
+                Add
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
     </Box>

@@ -26,7 +26,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { red, green } from '@mui/material/colors';
 import { useState, useEffect } from 'react';
-
 import { useUserContext } from '../../hooks/useUserContext';
 
 export default function UserComponent() {
@@ -39,11 +38,13 @@ export default function UserComponent() {
         password: '',
         email: '',
     });
-
-    const { user, dispatch } = useUserContext();
+    const { users, dispatch } = useUserContext();
     const [error, setError] = useState('');
     const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(true);
+    const [editMode, setEditMode] = useState(false); // New state for edit mode
+    const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
+    const [openDialog, setOpenDialog] = useState(false);
 
     const [errors, setErrors] = useState({
         firstName: false,
@@ -54,9 +55,7 @@ export default function UserComponent() {
         password: false,
         email: false,
     });
-    const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
-    const [addUser, setAddUser] = useState({ open: false, message: '', severity: 'success' });
-    const [openDialog, setOpenDialog] = useState(false);
+
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -66,11 +65,9 @@ export default function UserComponent() {
                     throw new Error('Failed to fetch users');
                 }
                 const json = await response.json();
-                console.log('Fetched users:', json);
                 dispatch({ type: 'SET_USERS', payload: json });
             } catch (err) {
                 console.error('Error fetching users:', err);
-                setError(err.message);
             } finally {
                 setLoading(false);
             }
@@ -78,6 +75,7 @@ export default function UserComponent() {
 
         fetchUsers();
     }, [dispatch]);
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -104,33 +102,86 @@ export default function UserComponent() {
 
     const handleSubmit = async () => {
         if (validateForm()) {
-            console.log('Form submitted:', formValues);
-            try {
-                const response = await fetch('/api/user/register', {
-                    method: 'POST',
-                    body: JSON.stringify(formValues),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                const json = await response.json();
-
-                if (!response.ok) {
-                    setError(json.error);
-                }
-
-                if (response.ok) {
-                    console.log('New user added', json);
-                    dispatch({ type: 'CREATE_USER', payload: json });
-                    handleCancel();
-                    setAddUser({ open: true, message: 'User Added successfully!', severity: 'success' });
-                }
-            } catch (err) {
-                setError('An error occurred during registration. Please try again later.');
-                console.error('Error:', err);
+            if (editMode) {
+                // Update existing user
+                handleUpdateUser();
+            } else {
+                // Add new user
+                handleAddUser();
             }
         }
+    };
+
+    const handleAddUser = async () => {
+        try {
+            const response = await fetch('/api/user/register', {
+                method: 'POST',
+                body: JSON.stringify(formValues),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                setError(json.error);
+            }
+
+            if (response.ok) {
+                console.log('New user added', json);
+                dispatch({ type: 'CREATE_USER', payload: json });
+                handleCancel();
+                setAlerts({ open: true, message: 'User Added successfully!', severity: 'success' });
+            }
+        } catch (err) {
+            setError('An error occurred during registration. Please try again later.');
+            console.error('Error:', err);
+        }
+    };
+
+
+    const handleUpdateUser = async () => {
+        try {
+            const response = await fetch(`/api/user/${userId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(formValues),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                setError(json.error);
+                return;
+            }
+
+            // Dispatch the update action
+            console.log('User updated', json); // Check the updated user data
+            dispatch({ type: 'UPDATE_USER', payload: json });
+            console.log(json);
+            handleCancel();
+            setAlerts({ open: true, message: 'User updated successfully!', severity: 'success' });
+        } catch (err) {
+            setError('An error occurred during updating. Please try again later.');
+            console.error('Error:', err);
+        }
+    };
+
+
+    const handleEditUser = (user) => {
+        setFormValues({
+            firstName: user.firstName,
+            middleName: user.middleName,
+            lastName: user.lastName,
+            department: user.department,
+            username: user.username,
+            email: user.email,
+        });
+        setUserId(user._id); // Set the ID of the user being edited
+        setEditMode(true);   // Enable edit mode
     };
 
     const handleCancel = () => {
@@ -152,6 +203,7 @@ export default function UserComponent() {
             password: false,
             email: false,
         });
+        setEditMode(false); // Reset edit mode
     };
 
     if (loading) {
@@ -166,7 +218,6 @@ export default function UserComponent() {
         setOpenDialog(false);
     };
 
-
     const handleDeleteUser = async () => {
         try {
             const response = await fetch(`/api/user/${userId}`, {
@@ -174,7 +225,7 @@ export default function UserComponent() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete exam');
+                throw new Error('Failed to delete user');
             }
 
             dispatch({ type: 'DELETE_USER', payload: userId });
@@ -186,27 +237,12 @@ export default function UserComponent() {
         }
     };
 
-
     const handleSnackbarClose = () => {
         setAlerts(false);
     };
 
-    const handleSnackbarCloseAdd = () => {
-        setAddUser(false);
-    };
-
     return (
         <>
-            <Snackbar open={addUser.open} autoHideDuration={2000} onClose={handleSnackbarCloseAdd}>
-                <Alert
-                    onClose={handleSnackbarCloseAdd}
-                    severity={addUser.severity}
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    User Added successfully!
-                </Alert>
-            </Snackbar>
             <Snackbar open={alerts.open} autoHideDuration={2000} onClose={handleSnackbarClose}>
                 <Alert
                     onClose={handleSnackbarClose}
@@ -214,9 +250,10 @@ export default function UserComponent() {
                     variant="filled"
                     sx={{ width: '100%' }}
                 >
-                    User deleted successfully!
+                    {alerts.message}
                 </Alert>
             </Snackbar>
+
             <Dialog
                 open={openDialog}
                 onClose={handleDialogClose}
@@ -226,7 +263,7 @@ export default function UserComponent() {
                 <DialogTitle id="alert-dialog-title">{"Warning!"}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete this User?
+                        Are you sure you want to delete this user?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -236,8 +273,9 @@ export default function UserComponent() {
                     </Button>
                 </DialogActions>
             </Dialog>
+
             <br /><br />
-            <Typography variant="h4" gutterBottom>Users Table</Typography>
+            <Typography variant="h5" gutterBottom>Users Table</Typography>
             <br /><br />
             <Box
                 component="form"
@@ -245,15 +283,14 @@ export default function UserComponent() {
                 noValidate
                 autoComplete="off"
             >
-                <Button size="small"
-                    variant="outlined" onClick={handleSubmit}>
-                    <CheckIcon sx={{ color: green[900] }} />
+                <Button size="small" variant="outlined" onClick={handleSubmit}>
+                    {editMode ? <CheckIcon sx={{ color: green[900] }} /> : 'Add User'}
                 </Button>
-                <Button size="small"
-                    variant="outlined" onClick={handleCancel}>
+                <Button size="small" variant="outlined" onClick={handleCancel}>
                     <CloseIcon sx={{ color: red[900] }} />
                 </Button>
 
+                {/* Form Inputs */}
                 <Input
                     placeholder="First Name"
                     name="firstName"
@@ -303,7 +340,7 @@ export default function UserComponent() {
                     type="password"
                     value={formValues.password}
                     onChange={handleInputChange}
-                    required
+                    required={!editMode} // Password is required only in Add mode
                     error={errors.password}
                     sx={{ width: '100px' }}
                 />
@@ -319,12 +356,12 @@ export default function UserComponent() {
                 />
             </Box>
             <br /><br />
+
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="caption table">
                     <caption>A basic table example with a caption</caption>
                     <TableHead>
                         <TableRow>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>No.</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>First Name</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Middle Name</TableCell>
@@ -332,20 +369,13 @@ export default function UserComponent() {
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Username</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Email</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Department</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {user && user.length > 0 ? (
-                            user.map((u, index) => (
+                        {users && users.length > 0 ? (
+                            users.map((u, index) => (
                                 <TableRow key={u._id}>
-                                    <TableCell align="center">
-                                        <Button size="small">
-                                            <EditIcon />
-                                        </Button>
-                                        <Button size="small" onClick={() => { setUserId(u._id); setOpenDialog(true); }}>
-                                            <DeleteIcon sx={{ color: red[900] }} />
-                                        </Button>
-                                    </TableCell>
                                     <TableCell align="left">{index + 1}</TableCell>
                                     <TableCell align="left">{u.firstName}</TableCell>
                                     <TableCell align="left">{u.middleName}</TableCell>
@@ -353,6 +383,14 @@ export default function UserComponent() {
                                     <TableCell align="left">{u.username}</TableCell>
                                     <TableCell align="left">{u.email}</TableCell>
                                     <TableCell align="left">{u.department}</TableCell>
+                                    <TableCell align="center">
+                                        <Button size="small">
+                                            <EditIcon onClick={() => handleEditUser(u)} />
+                                        </Button>
+                                        <Button size="small" onClick={() => { setUserId(u._id); setOpenDialog(true); }}>
+                                            <DeleteIcon sx={{ color: red[900] }} />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (
