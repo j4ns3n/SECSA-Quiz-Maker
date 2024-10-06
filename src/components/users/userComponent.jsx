@@ -37,6 +37,7 @@ export default function UserComponent() {
         username: '',
         password: '',
         email: '',
+        role: 'Teacher'
     });
     const { users, dispatch } = useUserContext();
     const [error, setError] = useState('');

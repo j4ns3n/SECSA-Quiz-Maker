@@ -267,10 +267,10 @@ const ViewExam = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>No.</TableCell>
-              <TableCell>Title</TableCell>
-              <TableCell>Course</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Course</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -280,7 +280,7 @@ const ViewExam = () => {
                   <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
                   <TableCell>{exam.title}</TableCell>
                   <TableCell>{exam.course}</TableCell>
-                  <TableCell>
+                  <TableCell align="center">
                     <IconButton onClick={() => {setExamId(exam._id); setOpenDialog(true);}}>
                       <DeleteIcon sx={{ color: red[900] }} />
                     </IconButton>

@@ -276,11 +276,11 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                         <Table sx={{ minWidth: 650 }} aria-label="topics table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>No.</TableCell>
-                                    <TableCell>Topic Name</TableCell>
-                                    <TableCell>Description</TableCell>
-                                    <TableCell>Questions</TableCell>
-                                    <TableCell>Action</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>Topic Name</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>Questions</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -291,7 +291,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                                             <TableCell>{topic.topicName}</TableCell>
                                             <TableCell>{topic.topicDesc}</TableCell>
                                             <TableCell>{topic.questions.length}</TableCell>
-                                            <TableCell>
+                                            <TableCell align="center">
                                                 <IconButton onClick={() => handleViewQuestionsClick(topic)}>
                                                     <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
                                                 </IconButton>

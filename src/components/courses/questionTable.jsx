@@ -474,11 +474,11 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 <Table sx={{ minWidth: 650 }} aria-label="questions table">
                     <TableHead>
                         <TableRow>
-                            <TableCell>No.</TableCell>
-                            <TableCell>Question</TableCell>
-                            <TableCell>Difficulty</TableCell>
-                            <TableCell>Type</TableCell>
-                            <TableCell>Action</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Question</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Difficulty</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Action</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -491,7 +491,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                         <TableCell>{question.questionText}</TableCell>
                                         <TableCell>{question.difficulty}</TableCell>
                                         <TableCell>{question.type}</TableCell>
-                                        <TableCell>
+                                        <TableCell align="center">
                                             <IconButton onClick={() => startEditing(question)}>
                                                 <EditIcon sx={{ color: blue[600] }} />
                                             </IconButton>
