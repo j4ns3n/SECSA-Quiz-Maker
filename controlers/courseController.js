@@ -306,49 +306,41 @@ const deleteQuestion = async (req, res) => {
 
 const updateQuestion = async (req, res) => {
     const { courseId, year, subjectName, topicName, questionId } = req.params;
-    const updatedQuestion = req.body; // Updated question details
+    const updatedQuestion = req.body;
 
     try {
-        // Fetch the course by ID
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ message: 'Course not found' });
         }
 
-        // Find the year level
         const yearLevel = course.yearLevels.find(y => y.year === year);
         if (!yearLevel) {
             return res.status(404).json({ message: 'Year level not found' });
         }
 
-        // Find the subject
         const subject = yearLevel.subjects.find(s => s.subjectName === subjectName);
         if (!subject) {
             return res.status(404).json({ message: 'Subject not found' });
         }
 
-        // Find the topic
         const topic = subject.topics.find(t => t.topicName === topicName);
         if (!topic) {
             return res.status(404).json({ message: 'Topic not found' });
         }
 
-        // Find the question within the topic
         const questionIndex = topic.questions.findIndex(q => q._id.toString() === questionId);
         if (questionIndex === -1) {
             return res.status(404).json({ message: 'Question not found' });
         }
 
-        // Update the question
         topic.questions[questionIndex] = {
             ...topic.questions[questionIndex].toObject(),  // Spread existing question
             ...updatedQuestion  // Merge updated fields
         };
 
-        // Save the course
         await course.save();
 
-        // Respond with the updated question
         res.status(200).json({ updatedQuestion: topic.questions[questionIndex] });
     } catch (error) {
         console.error('Update question error:', error);
@@ -395,6 +387,69 @@ const addSubject = async (req, res) => {
     }
 };
 
+const updateSubject = async (req, res) => {
+    try {
+      const { courseId, year, subjectId } = req.params;
+      const { subjectCode, subjectName } = req.body;
+  
+      const course = await Course.findById(courseId);
+  
+      if (!course) {
+        return res.status(404).json({ message: 'Course not found' });
+      }
+  
+      const yearLevel = course.yearLevels.find((level) => level.year === year);
+  
+      if (!yearLevel) {
+        return res.status(404).json({ message: 'Year level not found' });
+      }
+  
+      const subject = yearLevel.subjects.id(subjectId);
+  
+      if (!subject) {
+        return res.status(404).json({ message: 'Subject not found' });
+      }
+  
+      subject.subjectCode = subjectCode || subject.subjectCode;
+      subject.subjectName = subjectName || subject.subjectName;
+  
+      await course.save();
+  
+      return res.status(200).json(yearLevel.subjects);
+    } catch (error) {
+      console.error('Error updating subject:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  const deleteSubject = async (req, res) => {
+    try {
+      const { courseId, year, subjectId } = req.params;
+  
+      const course = await Course.findById(courseId);
+  
+      if (!course) {
+        return res.status(404).json({ message: 'Course not found' });
+      }
+  
+      const yearLevel = course.yearLevels.find((level) => level.year === year);
+  
+      if (!yearLevel) {
+        return res.status(404).json({ message: 'Year level not found' });
+      }
+  
+      yearLevel.subjects = yearLevel.subjects.filter((subject) => subject._id.toString() !== subjectId);
+  
+      await course.save();
+  
+      return res.status(200).json(yearLevel.subjects);
+    } catch (error) {
+      console.error('Error deleting subject:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+
 
 
 
@@ -410,5 +465,7 @@ module.exports = {
     addQuestionToTopic,
     deleteQuestion,
     updateQuestion,
-    addSubject
+    addSubject,
+    updateSubject,
+    deleteSubject
 }

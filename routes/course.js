@@ -13,7 +13,9 @@ const {
     addQuestionToTopic,
     deleteQuestion,
     updateQuestion,
-    addSubject
+    addSubject,
+    updateSubject,
+    deleteSubject
 } = require('../controlers/courseController')
 
 const router = express.Router();
@@ -28,8 +30,11 @@ router.delete('/:id', deleteCourse)
 
 router.patch('/:id', updateCourse)
 
-
 router.patch('/:courseId/year/:yearLevel', addSubject);
+
+router.patch('/:courseId/year/:year/subject/:subjectId', updateSubject);
+
+router.delete('/:courseId/year/:year/subject/:subjectId', deleteSubject);
 
 router.patch('/:courseId/year/:year/subject/:subjectName/topics', addTopicToSubject);
 
