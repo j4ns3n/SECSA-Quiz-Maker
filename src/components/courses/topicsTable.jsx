@@ -38,6 +38,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     const [selectedTopic, setSelectedTopic] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [topicId, setTopicId] = useState('');
+    const [errors, setErrors] = useState({ topicName: '', topicDesc: '' });
 
     // State for pagination
     const [page, setPage] = useState(0);
@@ -64,10 +65,26 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
         setOpenDialog(false);
     };
 
-    const handleTopicChange = (event) => {
-        const { name, value } = event.target;
-        if (name === 'topicName') setTopicName(value);
-        if (name === 'topicDesc') setTopicDesc(value);
+    const handleTopicChange = (e) => {
+        const { name, value } = e.target;
+
+        if (name === 'topicName') {
+            setTopicName(value);
+            setErrors({ ...errors, topicName: value ? '' : 'Topic Name is required' });
+        } else if (name === 'topicDesc') {
+            setTopicDesc(value);
+            setErrors({ ...errors, topicDesc: value ? '' : 'Topic Description is required' });
+        }
+    };
+
+
+    const validateForm = () => {
+        const newErrors = {
+            topicName: topicName ? '' : 'Topic Name is required',
+            topicDesc: topicDesc ? '' : 'Topic Description is required',
+        };
+        setErrors(newErrors);
+        return !newErrors.topicName && !newErrors.topicDesc;
     };
 
     const clearInputs = () => {
@@ -79,7 +96,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
 
     const addTopic = async (e) => {
         e.preventDefault();
-        if (editingTopicId) return;
+        if (editingTopicId || !validateForm()) return;
 
         const newTopic = { topicName, topicDesc, questions };
 
@@ -239,6 +256,8 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                         sx={{ marginRight: '10px' }}
                         value={topicName}
                         onChange={handleTopicChange}
+                        error={!!errors.topicName} // Display error if present
+                        helperText={errors.topicName} // Show error message
                     />
                     <TextField
                         name="topicDesc"
@@ -248,6 +267,8 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                         sx={{ marginRight: '10px' }}
                         value={topicDesc}
                         onChange={handleTopicChange}
+                        error={!!errors.topicDesc} // Display error if present
+                        helperText={errors.topicDesc} // Show error message
                     />
                     <Button
                         size="large"

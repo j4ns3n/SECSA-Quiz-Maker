@@ -53,6 +53,33 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+        let formErrors = {};
+        if (!difficulty) formErrors.difficulty = 'Please select a difficulty level.';
+        if (!type) formErrors.type = 'Please select a question type.';
+        if (!question) formErrors.question = 'Please enter a question.';
+
+        if (type === 'Multiple Choice') {
+            if (!choices.choice1 || !choices.choice2 || !choices.choice3 || !choices.choice4) {
+                formErrors.choices = 'Please fill all the multiple-choice options.';
+            }
+            if (!correctAnswer) formErrors.correctAnswer = 'Please select the correct answer.';
+        }
+
+        if (type === 'True or False' && !correctAnswer) {
+            formErrors.correctAnswer = 'Please select True or False.';
+        }
+
+        if (type === 'Identification' && !correctAnswer) {
+            formErrors.correctAnswer = 'Please provide an answer.';
+        }
+
+        setErrors(formErrors);
+        return Object.keys(formErrors).length === 0;
+    };
+
     const openDialogBox = (topicId) => {
         setQuestionId(topicId);
         setOpenDialog(true);
@@ -60,28 +87,55 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
 
     const closeDialogBox = () => {
         setOpenDialog(false);
-    };
-
-    const handleChangeDifficulty = (event) => {
+    };const handleChangeDifficulty = (event) => {
         setDifficulty(event.target.value);
+        // Clear error when the difficulty is selected
+        if (event.target.value) {
+            setErrors((prevErrors) => ({ ...prevErrors, difficulty: '' }));
+        }
     };
-
+    
     const handleChangeType = (event) => {
         setType(event.target.value);
         setCorrectAnswer('');
         setChoices({ choice1: '', choice2: '', choice3: '', choice4: '' });
+    
+        // Clear error when the type is selected
+        if (event.target.value) {
+            setErrors((prevErrors) => ({ ...prevErrors, type: '' }));
+        }
     };
-
+    
     const handleCorrectAnswerChange = (event) => {
         setCorrectAnswer(event.target.value);
+    
+        // Clear error when the correct answer is selected
+        if (event.target.value) {
+            setErrors((prevErrors) => ({ ...prevErrors, correctAnswer: '' }));
+        }
     };
-
+    
     const handleChoiceChange = (event) => {
         setChoices({
             ...choices,
             [event.target.name]: event.target.value
         });
+    
+        // Clear error when a choice is entered
+        if (event.target.value) {
+            setErrors((prevErrors) => ({ ...prevErrors, choices: '' }));
+        }
     };
+    
+    const handleQuestionChange = (event) => {
+        setQuestion(event.target.value);
+    
+        // Clear error when the question is entered
+        if (event.target.value) {
+            setErrors((prevErrors) => ({ ...prevErrors, question: '' }));
+        }
+    };
+    
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -89,10 +143,6 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         }
         setOpen(false);
         setDeleteSnack(false);
-    };
-
-    const handleQuestionChange = (event) => {
-        setQuestion(event.target.value);
     };
 
     const handleChangePage = (event, newPage) => {
@@ -105,6 +155,10 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     };
 
     const addQuestion = async () => {
+
+        if (!validateForm()) {
+            return;  // Exit if form is not valid
+        }
         const questionData = {
             type,
             difficulty,
@@ -303,6 +357,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                     <MenuItem value={"Intermediate"}>Intermediate</MenuItem>
                     <MenuItem value={"Difficult"}>Difficult</MenuItem>
                 </Select>
+                {errors.difficulty && <Typography variant="caption" color="error">{errors.difficulty}</Typography>}
             </FormControl>
 
             <FormControl style={{ width: "150px", marginRight: "10px" }}>
@@ -312,12 +367,14 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                     id="type-select-select"
                     value={type}
                     label="Type"
+                    helperText={errors.type}
                     onChange={handleChangeType}
                 >
                     <MenuItem value={"Multiple Choice"}>Multiple Choice</MenuItem>
                     <MenuItem value={"True or False"}>True or False</MenuItem>
                     <MenuItem value={"Identification"}>Identification</MenuItem>
                 </Select>
+                {errors.type && <Typography variant="caption" color="error">{errors.type}</Typography>}
             </FormControl>
 
             <FormControl>
@@ -329,6 +386,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                     value={question}
                     onChange={handleQuestionChange}
                 />
+                {errors.question && <Typography variant="caption" color="error">{errors.question}</Typography>}
             </FormControl>
             <br />
             <br />
@@ -398,6 +456,8 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                             value="choice4"
                         />
                     </RadioGroup>
+                    {errors.choices && <Typography variant="caption" color="error">{errors.choices}</Typography>}
+                    {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
                 </>
             )}
 
@@ -416,6 +476,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                             value="False"
                         />
                     </RadioGroup>
+                    {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
                 </>
             )}
 
@@ -432,10 +493,12 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                             onChange={handleCorrectAnswerChange}
                         />
                     </FormControl>
+                    {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
                 </>
             )}
 
-            <br /><br />
+            <br />
+            <br />
             {editingQuestion ? (
                 <>
                     <Button

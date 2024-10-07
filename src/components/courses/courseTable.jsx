@@ -37,21 +37,56 @@ const CourseTable = ({ course, onBack }) => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [formValues, setFormValues] = useState({ subjectCode: '', subjectName: '', topics: [] });
   const [editingSubject, setEditingSubject] = useState(null);
-  const [openDialog, setOpenDialog] = React.useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [errors, setErrors] = useState({
+    subjectCode: "",
+    subjectName: "",
+  });
+
+  // Validation function to check required fields
+  const validateForm = () => {
+    let isValid = true;
+    let newErrors = {};
+
+    if (!formValues.subjectCode) {
+      newErrors.subjectCode = "Subject Code is required";
+      isValid = false;
+    }
+
+    if (!formValues.subjectName) {
+      newErrors.subjectName = "Subject Name is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormValues((prevFormValues) => ({
+      ...prevFormValues,
+      [name]: value,
+    }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: value ? "" : prevErrors[name],
+    }));
+  };
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
 
-  
   const openDialogBox = (questionId) => {
     setSubjectId(questionId);
     setOpenDialog(true);
-};
-
+  };
 
   const closeDialogBox = () => {
     setOpenDialog(false);
@@ -86,16 +121,12 @@ const CourseTable = ({ course, onBack }) => {
     setSelectedSubject(null);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues({
-      ...formValues,
-      [name]: value,
-    });
-  };
-
   // Add New Subject
   const handleAddSubject = async () => {
+    if (!validateForm()) {
+      return; // Exit if form is not valid
+    }
+
     try {
       const response = await fetch(`/api/courses/${course._id}/year/${selectedYear}`, {
         method: 'PATCH',
@@ -115,20 +146,23 @@ const CourseTable = ({ course, onBack }) => {
       const updatedSubjects = await response.json();
       setSelectedYearSubjects(updatedSubjects);
       resetForm();
-      // Show success Snackbar
       setSnackbarMessage('Subject added successfully!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error(error);
-      // Show error Snackbar
       setSnackbarMessage('Failed to add subject.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   };
 
+  // Update Subject
   const handleUpdateSubject = async () => {
+    if (!validateForm()) {
+      return; // Exit if form is not valid
+    }
+
     try {
       const response = await fetch(
         `/api/courses/${course._id}/year/${selectedYear}/subject/${editingSubject._id}`,
@@ -151,13 +185,11 @@ const CourseTable = ({ course, onBack }) => {
       const updatedSubjects = await response.json();
       setSelectedYearSubjects(updatedSubjects);
       resetForm();
-      // Show success Snackbar
       setSnackbarMessage('Subject updated successfully!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error(error);
-      // Show error Snackbar
       setSnackbarMessage('Failed to update subject.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -175,14 +207,12 @@ const CourseTable = ({ course, onBack }) => {
       }
 
       setSelectedYearSubjects((prevSubjects) => prevSubjects.filter((subject) => subject._id !== subjectId));
-      // Show success Snackbar
       setSnackbarMessage('Subject deleted successfully!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
       setOpenDialog(false);
     } catch (error) {
       console.error(error);
-      // Show error Snackbar
       setSnackbarMessage('Failed to delete subject.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -192,6 +222,7 @@ const CourseTable = ({ course, onBack }) => {
   const resetForm = () => {
     setFormValues({ subjectCode: '', subjectName: '', topics: [] });
     setEditingSubject(null);
+    setErrors({ subjectCode: "", subjectName: "" }); // Reset errors
   };
 
   const handleEditSubject = (subject) => {
@@ -246,6 +277,7 @@ const CourseTable = ({ course, onBack }) => {
             <Box>
               <TextField
                 name="subjectCode"
+                required
                 label="Subject Code"
                 type="text"
                 variant="outlined"
@@ -253,15 +285,20 @@ const CourseTable = ({ course, onBack }) => {
                 sx={{ mr: 2 }}
                 value={formValues.subjectCode}
                 onChange={handleInputChange}
+                error={!!errors.subjectCode}
+                helperText={errors.subjectCode}
               />
               <TextField
                 name="subjectName"
+                required
                 label="Subject Name"
                 type="text"
                 variant="outlined"
                 size="small"
                 value={formValues.subjectName}
                 onChange={handleInputChange}
+                error={!!errors.subjectName}
+                helperText={errors.subjectName}
               />
               <Button
                 onClick={editingSubject ? handleUpdateSubject : handleAddSubject}
@@ -273,7 +310,6 @@ const CourseTable = ({ course, onBack }) => {
                 {editingSubject ? 'Save' : 'Add'}
               </Button>
 
-              {/* Cancel button appears only in edit mode */}
               {editingSubject && (
                 <Button
                   onClick={resetForm}
@@ -374,3 +410,4 @@ const CourseTable = ({ course, onBack }) => {
 };
 
 export default CourseTable;
+
