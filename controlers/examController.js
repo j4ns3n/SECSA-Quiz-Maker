@@ -1,5 +1,5 @@
 const Exam = require('../models/exam');
-const mongoose = require('mongoose')
+const crypto = require('crypto');
 
 // Create a new exam
 const createExam = async (req, res) => {
@@ -7,7 +7,7 @@ const createExam = async (req, res) => {
 
     try {
         let totalQuestions = 0;
-
+        const examCode = crypto.randomBytes(3).toString('hex').toUpperCase();
         topics.forEach(topic => {
             totalQuestions += topic.selectedQuestions.easy.length;
             totalQuestions += topic.selectedQuestions.intermediate.length;
@@ -20,7 +20,8 @@ const createExam = async (req, res) => {
             yearLevel,
             subject,
             topics,
-            totalQuestions  
+            totalQuestions,
+            examCode
         });
 
         await newExam.save();

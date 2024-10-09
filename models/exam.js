@@ -2,13 +2,14 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const participantSchema = new Schema({
-    participantId: { type: String, required: true },
     name: { type: String, required: true }, 
-    email: { type: String } 
+    email: { type: String },
+    course: { type: String }
 });
 
 const examSchema = new Schema({
     title: { type: String, required: true },
+    examCode: { type: String, required: true },
     course: { type: String, required: true },
     yearLevel: { type: String, required: true },
     subject: { type: [String], required: true },
