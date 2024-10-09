@@ -492,8 +492,8 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                             value={correctAnswer}
                             onChange={handleCorrectAnswerChange}
                         />
-                    </FormControl>
                     {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
+                    </FormControl>
                 </>
             )}
 

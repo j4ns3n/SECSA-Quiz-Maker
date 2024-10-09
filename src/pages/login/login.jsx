@@ -27,16 +27,13 @@ function Login({ onLogin }) {
       if (!response.ok) {
         setError("Username or Password is Incorrect");
       } else {
-        const { token } = json;
-        console.log(token);
-
-        // Save the token in local storage
+        const { token, role } = json; 
+  
         localStorage.setItem('authToken', token);
+        sessionStorage.setItem('userRole', role); // Save the user role
 
-        // Update user context or state
         onLogin(token);
 
-        // Navigate to the home page
         navigate('/');
       }
     } catch (err) {

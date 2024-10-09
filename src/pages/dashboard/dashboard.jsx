@@ -62,7 +62,6 @@ const demoTheme = createTheme({
 });
 
 function DemoPageContent({ pathname, onLogout }) {
-
   const renderContent = () => {
     switch (pathname) {
       case '/courses':
@@ -70,7 +69,7 @@ function DemoPageContent({ pathname, onLogout }) {
       case '/exams':
         return <Exam />;
       case '/users':
-        return <UserComponent />
+        return <UserComponent />;
       case '/logout':
         onLogout();
         return null;
@@ -88,11 +87,13 @@ DemoPageContent.propTypes = {
 };
 
 function Dashboard(props) {
-
   const { window } = props;
-
   const [pathname, setPathname] = React.useState('/courses');
   const navigate = useNavigate();
+
+  // Get the role from session storage
+  const role = sessionStorage.getItem('userRole'); // Retrieve the role from session storage
+  console.log("Retrieved Role in Dashboard:", role); // Debugging log
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -111,9 +112,16 @@ function Dashboard(props) {
 
   const demoWindow = window !== undefined ? window() : undefined;
 
+  const filteredNavigation = NAVIGATION.filter(navItem => {
+    if (role === 'Teacher' && navItem.segment === 'users') {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <AppProvider
-      navigation={NAVIGATION.map((navItem) => ({
+      navigation={filteredNavigation.map((navItem) => ({
         ...navItem,
         onClick: () => setPathname(`/${navItem.segment}`),
       }))}
