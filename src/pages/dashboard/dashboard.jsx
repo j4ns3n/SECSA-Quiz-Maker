@@ -91,9 +91,7 @@ function Dashboard(props) {
   const [pathname, setPathname] = React.useState('/courses');
   const navigate = useNavigate();
 
-  // Get the role from session storage
-  const role = sessionStorage.getItem('userRole'); // Retrieve the role from session storage
-  console.log("Retrieved Role in Dashboard:", role); // Debugging log
+  const role = sessionStorage.getItem('userRole'); 
 
   const handleLogout = () => {
     sessionStorage.clear();

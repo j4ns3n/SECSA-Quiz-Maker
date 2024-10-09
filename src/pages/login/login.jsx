@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import loginImage from '../../assets/loginlogo.png'
-import { Link } from 'react-router-dom';
-// import bcrypt from 'bcryptjs';
 import { useNavigate } from 'react-router-dom';
 
 function Login({ onLogin }) {
@@ -163,12 +161,6 @@ function Login({ onLogin }) {
             >
               Sign In
             </button>
-            <p
-              style={styles.create}
-              onMouseOver={(e) => (e.target.style.color = styles.createHover.color)}
-              onMouseOut={(e) => (e.target.style.color = styles.create.color)}
-            ><Link to='/register' style={{ color: 'inherit', textDecoration: 'none' }}>SIGN UP</Link>
-            </p>
           </form>
         </div>
       </div>

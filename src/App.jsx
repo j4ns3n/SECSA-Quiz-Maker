@@ -1,12 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Login from './pages/login/login';
-import Register from './pages/register/register';
 import { UserContextProvider } from './context/UserContext/UserContext';
 import { CourseContextProvider } from './context/CourseContext/CourseContext';
 import Dashboard from './pages/dashboard/dashboard';
 import { jwtDecode } from 'jwt-decode';
-
+import QuizApp from './pages/quizapp';
 
 function App() {
   return (
@@ -74,7 +73,7 @@ function AppRoutes() {
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />}
       />
-      <Route path="/register" element={<Register />} />
+      <Route path="/exam" element={<QuizApp />} />
       {/* Protected routes */}
       <Route
         path="/*"
