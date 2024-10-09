@@ -84,6 +84,7 @@ const loginUser = async (req, res) => {
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        const role = user.role;
 
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -94,7 +95,7 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
 
-        res.status(200).json({ user, token });
+        res.status(200).json({ role, token });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
