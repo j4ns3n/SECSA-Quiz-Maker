@@ -12,7 +12,7 @@ const examSchema = new Schema({
     examCode: { type: String, required: true },
     course: { type: String, required: true },
     yearLevel: { type: String, required: true },
-    subject: { type: [String], required: true },
+    subjects: { type: [String], required: true },
     topics: [
         {
             topicName: { type: String, required: true },

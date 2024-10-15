@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 // Create a new exam
 const createExam = async (req, res) => {
-    const { title, course, yearLevel, subject, topics } = req.body;
+    const { title, course, yearLevel, subjects, topics } = req.body;
 
     try {
         let totalQuestions = 0;
@@ -18,7 +18,7 @@ const createExam = async (req, res) => {
             title,
             course,
             yearLevel,
-            subject,
+            subjects,
             topics,
             totalQuestions,
             examCode
@@ -56,6 +56,21 @@ const deleteExam = async (req, res) => {
     }
 };
 
+const findExam = async (req, res) => {
+    const { examCode } = req.params; 
+
+    try {
+        const exam = await Exam.findOne({ examCode: examCode }); 
+        if (exam) {
+            res.status(200).json(exam); 
+        } else {
+            res.status(404).json({ message: 'Exam not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 
 
 
@@ -64,5 +79,6 @@ const deleteExam = async (req, res) => {
 module.exports = {
     createExam,
     getExams,
-    deleteExam
+    deleteExam,
+    findExam
 }
