@@ -6,6 +6,7 @@ import { CourseContextProvider } from './context/CourseContext/CourseContext';
 import Dashboard from './pages/dashboard/dashboard';
 import { jwtDecode } from 'jwt-decode';
 import QuizApp from './pages/quizapp';
+import QuizPage from './components/quizes/quizPage';
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function AppRoutes() {
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />}
       />
       <Route path="/exam" element={<QuizApp />} />
+      <Route path="/quiz/:quizTitle" element={<QuizPage />} />
       {/* Protected routes */}
       <Route
         path="/*"

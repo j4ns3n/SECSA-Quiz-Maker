@@ -194,7 +194,7 @@ const CreateExam = () => {
                 title,
                 course: selectedCourse,
                 yearLevel: selectedYearLevel,
-                subject: selectedSubject,
+                subjects: subjects.map(subject => subject.subjectName),
                 topics: examData
             };
 
