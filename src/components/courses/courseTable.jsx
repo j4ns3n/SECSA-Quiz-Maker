@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  TablePagination
 } from '@mui/material';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { orange, blue, red } from '@mui/material/colors';
@@ -45,6 +46,8 @@ const CourseTable = ({ course, onBack }) => {
     subjectCode: "",
     subjectName: "",
   });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Validation function to check required fields
   const validateForm = () => {
@@ -64,6 +67,9 @@ const CourseTable = ({ course, onBack }) => {
     setErrors(newErrors);
     return isValid;
   };
+
+
+  const userRole = sessionStorage.getItem('userRole');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -230,6 +236,16 @@ const CourseTable = ({ course, onBack }) => {
     setEditingSubject(subject);
   };
 
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <Box>
       {selectedSubject ? (
@@ -273,7 +289,7 @@ const CourseTable = ({ course, onBack }) => {
           )}
           <br />
 
-          {selectedYear && (
+          {selectedYear && userRole === 'admin' && (
             <Box>
               <TextField
                 name="subjectCode"
@@ -343,17 +359,25 @@ const CourseTable = ({ course, onBack }) => {
                       <TableCell>{index + 1}</TableCell>
                       <TableCell sx={{ maxWidth: 251 }}>{subject.subjectCode}</TableCell>
                       <TableCell>{subject.subjectName}</TableCell>
-                      <TableCell>{subject.topics.length}</TableCell>
-                      <TableCell align="center">
-                        <IconButton onClick={() => handleViewTopics(subject)}>
-                          <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
-                        </IconButton>
-                        <IconButton onClick={() => handleEditSubject(subject)}>
-                          <EditIcon sx={{ color: blue[600] }} />
-                        </IconButton>
-                        <IconButton onClick={() => openDialogBox(subject._id)}>
-                          <DeleteIcon sx={{ color: red[900] }} />
-                        </IconButton>
+                      <TableCell>{subject.topics.length}
+                      </TableCell><TableCell align="center">
+                        {userRole === 'admin' ? (
+                          <>
+                            <IconButton onClick={() => handleViewTopics(subject)}>
+                              <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
+                            </IconButton>
+                            <IconButton onClick={() => handleEditSubject(subject)}>
+                              <EditIcon sx={{ color: blue[600] }} />
+                            </IconButton>
+                            <IconButton onClick={() => openDialogBox(subject._id)}>
+                              <DeleteIcon sx={{ color: red[900] }} />
+                            </IconButton>
+                          </>
+                        ) : userRole === 'Teacher' ? (
+                          <IconButton onClick={() => handleViewTopics(subject)}>
+                            <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
+                          </IconButton>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   ))
@@ -365,6 +389,16 @@ const CourseTable = ({ course, onBack }) => {
               </TableBody>
             </Table>
           </TableContainer>
+
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={selectedYearSubjects.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
           <Button onClick={onBack} sx={{ mt: 2 }}>
             Back to Courses
           </Button>

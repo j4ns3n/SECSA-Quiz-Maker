@@ -19,13 +19,20 @@ import {
     DialogTitle,
     DialogContent,
     DialogContentText,
-    DialogActions
+    DialogActions,
+    MenuItem,
+    InputLabel,
+    Select,
+    FormControl,
+    Checkbox,
+    ListItemText
 } from '@mui/material';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { blue, red } from '@mui/material/colors';
 import QuestionTable from './questionTable';
+import { useCoursesContext } from '../../hooks/useCourseContext';
 
 const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     const [topics, setTopics] = useState(subject.topics || []);
@@ -39,10 +46,37 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [topicId, setTopicId] = useState('');
     const [errors, setErrors] = useState({ topicName: '', topicDesc: '' });
+    const { courses, dispatch } = useCoursesContext();
 
-    // State for pagination
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    const [selectedCourse, setSelectedCourse] = useState('');
+    const [selectedYear, setSelectedYear] = useState('');
+    const [selectedSubject, setSelectedSubject] = useState('');
+
+    const handleCourseChange = (event) => {
+        setSelectedCourse(event.target.value);
+        setSelectedYear(''); // Reset year and subject when course changes
+        setSelectedSubject('');
+    };
+
+    const handleYearChange = (event) => {
+        setSelectedYear(event.target.value);
+        setSelectedSubject(''); // Reset subject when year changes
+    };
+
+    const handleSubjectChange = (event) => {
+        setSelectedSubject(event.target.value);
+        const {
+            target: { value },
+        } = event;
+        setSelectedSubjects(typeof value === 'string' ? value.split(',') : value);
+    };
+
+    const selectedCourseDetails = courses.find(c => c._id === selectedCourse);
+    const selectedYearDetails = selectedCourseDetails ? selectedCourseDetails.yearLevels.find(y => y.year === selectedYear) : null;
+    const [selectedSubjects, setSelectedSubjects] = React.useState([]); // Change to array for multiple selection
 
     useEffect(() => {
         setTopics(subject.topics);
@@ -78,6 +112,21 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     };
 
 
+
+    useEffect(() => {
+        const fetchCourse = async () => {
+            const response = await fetch('/api/courses');
+            const json = await response.json();
+
+            if (response.ok) {
+                console.log(courses);
+                dispatch({ type: 'SET_COURSES', payload: json });
+            }
+        };
+
+        fetchCourse();
+    }, [dispatch]);
+
     const validateForm = () => {
         const newErrors = {
             topicName: topicName ? '' : 'Topic Name is required',
@@ -95,13 +144,17 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     };
 
     const addTopic = async (e) => {
+        console.log('Selected Course:', selectedCourse);
+        console.log('Selected Year Level:', selectedYear);
+        console.log('Selected Subjects:', selectedSubjects);
         e.preventDefault();
+
         if (editingTopicId || !validateForm()) return;
 
         const newTopic = { topicName, topicDesc, questions };
 
         try {
-            const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subject.subjectName}/topics`, {
+            const initialResponse = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subject.subjectName}/topics`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -109,19 +162,38 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                 body: JSON.stringify(newTopic),
             });
 
-            if (response.ok) {
-                const result = await response.json();
-                setTopics((prevTopics) => [...prevTopics, result.newTopic]);
-                setAlerts({ open: true, message: 'Topic added successfully!', severity: 'success' });
-                clearInputs();
-            } else {
-                throw new Error('Failed to add topic');
+            if (!initialResponse.ok) {
+                throw new Error('Failed to add topic to the initial subject');
             }
+
+            const initialResult = await initialResponse.json();
+            setTopics((prevTopics) => [...prevTopics, initialResult.newTopic]);
+
+            const promises = selectedSubjects.map(async (subjectName) => {
+                const response = await fetch(`/api/courses/${selectedCourse}/year/${selectedYear}/subject/${subjectName}/topics`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newTopic),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to add topic for ${subjectName}`);
+                }
+
+                return await response.json();
+            });
+
+            setAlerts({ open: true, message: 'Topics added successfully!', severity: 'success' });
+            clearInputs();
+
         } catch (error) {
             console.error(error);
             setAlerts({ open: true, message: 'Error adding topic!', severity: 'error' });
         }
     };
+
 
     const deleteTopic = async () => {
         try {
@@ -293,6 +365,61 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                     )}
                     <br />
                     <br />
+                    <FormControl style={{ width: '200px', marginBottom: '16px', marginRight: 5 }}>
+                        <InputLabel id="course-select-label">Select Course</InputLabel>
+                        <Select
+                            labelId="course-select-label"
+                            id="course-select"
+                            value={selectedCourse}
+                            label="Select Course"
+                            onChange={handleCourseChange}
+                        >
+                            {courses.map((c) => (
+                                <MenuItem key={c._id} value={c._id}>
+                                    {c.courseName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl style={{ width: '200px', marginBottom: '16px', marginRight: 5 }} disabled={!selectedCourse}>
+                        <InputLabel id="year-select-label">Select Year Level</InputLabel>
+                        <Select
+                            labelId="year-select-label"
+                            id="year-select"
+                            value={selectedYear}
+                            label="Select Year Level"
+                            onChange={handleYearChange}
+                        >
+                            {selectedCourseDetails && selectedCourseDetails.yearLevels.map((yearLevel) => (
+                                <MenuItem key={yearLevel.year} value={yearLevel.year}>
+                                    {yearLevel.year}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl style={{ width: '200px' }} disabled={!selectedYear}>
+                        <InputLabel id="subject-select-label">Select Subjects</InputLabel>
+                        <Select
+                            labelId="subject-select-label"
+                            id="subject-select"
+                            multiple // Enable multiple selection
+                            value={selectedSubjects}
+                            label="Select Subjects"
+                            onChange={handleSubjectChange}
+                            renderValue={(selected) => selected.join(', ')} // Display selected values
+                        >
+                            {selectedYearDetails && selectedYearDetails.subjects.map((subject) => (
+                                <MenuItem key={subject.subjectCode} value={subject.subjectName}>
+                                    <Checkbox checked={selectedSubjects.indexOf(subject.subjectName) > -1} />
+                                    <ListItemText primary={subject.subjectName} />
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <br />
+                    <br />
                     <TableContainer component={Paper}>
                         <Table sx={{ minWidth: 650 }} aria-label="topics table">
                             <TableHead>
@@ -310,7 +437,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                                         <TableRow key={topic._id}>
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell>{topic.topicName}</TableCell>
-                                            <TableCell>{topic.topicDesc}</TableCell>
+                                            <TableCell sx={{ width: "370px" }}>{topic.topicDesc}</TableCell>
                                             <TableCell>{topic.questions.length}</TableCell>
                                             <TableCell align="center">
                                                 <IconButton onClick={() => handleViewQuestionsClick(topic)}>

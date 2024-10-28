@@ -283,11 +283,11 @@ const ViewExam = () => {
                   <TableCell>{exam.course}</TableCell>
                   <TableCell>{exam.examCode}</TableCell>
                   <TableCell align="center">
-                    <IconButton onClick={() => {setExamId(exam._id); setOpenDialog(true);}}>
-                      <DeleteIcon sx={{ color: red[900] }} />
-                    </IconButton>
                     <IconButton onClick={() => handleViewExam(exam)}>
                       <DownloadIcon sx={{ cursor: 'pointer' }} />
+                    </IconButton>
+                    <IconButton onClick={() => { setExamId(exam._id); setOpenDialog(true); }}>
+                      <DeleteIcon sx={{ color: red[900] }} />
                     </IconButton>
                   </TableCell>
                 </TableRow>

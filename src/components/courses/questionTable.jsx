@@ -52,8 +52,9 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     const [questionId, setQuestionId] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-
     const [errors, setErrors] = useState({});
+    const [wordedProblemAnswer, setWordedProblemAnswer] = useState('');
+    const [essayAnswer, setEssayAnswer] = useState('');
 
     const validateForm = () => {
         let formErrors = {};
@@ -76,6 +77,14 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             formErrors.correctAnswer = 'Please provide an answer.';
         }
 
+        if (type === 'Worded Problem' && !wordedProblemAnswer) {
+            formErrors.wordedProblemAnswer = 'Please provide a numeric answer.';
+        }
+
+        if (type === 'Essay/Short Answer' && !essayAnswer) {
+            formErrors.essayAnswer = 'Please provide an answer.';
+        }
+
         setErrors(formErrors);
         return Object.keys(formErrors).length === 0;
     };
@@ -87,55 +96,55 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
 
     const closeDialogBox = () => {
         setOpenDialog(false);
-    };const handleChangeDifficulty = (event) => {
+    }; const handleChangeDifficulty = (event) => {
         setDifficulty(event.target.value);
         // Clear error when the difficulty is selected
         if (event.target.value) {
             setErrors((prevErrors) => ({ ...prevErrors, difficulty: '' }));
         }
     };
-    
+
     const handleChangeType = (event) => {
         setType(event.target.value);
         setCorrectAnswer('');
         setChoices({ choice1: '', choice2: '', choice3: '', choice4: '' });
-    
+
         // Clear error when the type is selected
         if (event.target.value) {
             setErrors((prevErrors) => ({ ...prevErrors, type: '' }));
         }
     };
-    
+
     const handleCorrectAnswerChange = (event) => {
         setCorrectAnswer(event.target.value);
-    
+
         // Clear error when the correct answer is selected
         if (event.target.value) {
             setErrors((prevErrors) => ({ ...prevErrors, correctAnswer: '' }));
         }
     };
-    
+
     const handleChoiceChange = (event) => {
         setChoices({
             ...choices,
             [event.target.name]: event.target.value
         });
-    
+
         // Clear error when a choice is entered
         if (event.target.value) {
             setErrors((prevErrors) => ({ ...prevErrors, choices: '' }));
         }
     };
-    
+
     const handleQuestionChange = (event) => {
         setQuestion(event.target.value);
-    
+
         // Clear error when the question is entered
         if (event.target.value) {
             setErrors((prevErrors) => ({ ...prevErrors, question: '' }));
         }
     };
-    
+
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -163,8 +172,9 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             type,
             difficulty,
             questionText: question,
-            choices: Object.values(choices).filter(choice => choice !== ''),
-            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) : correctAnswer
+            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) :
+                type === 'Worded Problem' ? wordedProblemAnswer :
+                    type === 'Essay/Short Answer' ? essayAnswer : ''
         };
 
         try {
@@ -202,10 +212,10 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             type,
             difficulty,
             questionText: question,
-            choices: Object.values(choices).filter(choice => choice !== ''),
-            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) : correctAnswer
+            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) :
+                type === 'Worded Problem' ? wordedProblemAnswer :
+                    type === 'Essay' ? essayAnswer : ''
         };
-
         console.log(editingQuestion._id);
 
         try {
@@ -373,15 +383,28 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                     <MenuItem value={"Multiple Choice"}>Multiple Choice</MenuItem>
                     <MenuItem value={"True or False"}>True or False</MenuItem>
                     <MenuItem value={"Identification"}>Identification</MenuItem>
+                    <MenuItem value={"Worded Problem"}>Worded Problem</MenuItem>
+                    <MenuItem value={"Essay"}>Essay</MenuItem>
                 </Select>
                 {errors.type && <Typography variant="caption" color="error">{errors.type}</Typography>}
             </FormControl>
-
+            <br />
+            <br />
             <FormControl>
                 <TextField
                     id="question"
                     label="Question"
                     variant="outlined"
+                    minRows={3}
+                    maxRows={5}
+                    multiline
+                    fullWidth  // Adjusts the width to fit the container
+                    InputProps={{
+                        style: {
+                            resize: "vertical",  // Allows vertical resizing
+                            overflow: "auto",  // Adds scroll if needed
+                        },
+                    }}
                     style={{ width: "310px" }}
                     value={question}
                     onChange={handleQuestionChange}
@@ -492,7 +515,46 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                             value={correctAnswer}
                             onChange={handleCorrectAnswerChange}
                         />
-                    {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
+                        {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
+                    </FormControl>
+                </>
+            )}
+
+            {/* New input for Worded Problem */}
+            {type === 'Worded Problem' && (
+                <>
+                    <Typography><strong>Type:</strong> {type}</Typography>
+                    <FormControl>
+                        <TextField
+                            id="wordedProblemAnswer"
+                            label="Numeric Answer"
+                            variant="outlined"
+                            style={{ width: "310px", marginTop: "10px" }}
+                            value={wordedProblemAnswer}
+                            onChange={(e) => setWordedProblemAnswer(e.target.value)}
+                            type="number" // Ensure only numeric input
+                        />
+                        {errors.wordedProblemAnswer && <Typography variant="caption" color="error">{errors.wordedProblemAnswer}</Typography>}
+                    </FormControl>
+                </>
+            )}
+
+            {/* New input for Essay */}
+            {type === 'Essay' && (
+                <>
+                    <Typography><strong>Type:</strong> {type}</Typography>
+                    <FormControl>
+                        <TextField
+                            id="essayAnswer"
+                            label="Answer"
+                            variant="outlined"
+                            style={{ width: "310px", marginTop: "10px" }}
+                            value={essayAnswer}
+                            onChange={(e) => setEssayAnswer(e.target.value)}
+                            multiline={true} // Allow multiple lines
+                            rows={4} // Set the number of rows
+                        />
+                        {errors.essayAnswer && <Typography variant="caption" color="error">{errors.essayAnswer}</Typography>}
                     </FormControl>
                 </>
             )}

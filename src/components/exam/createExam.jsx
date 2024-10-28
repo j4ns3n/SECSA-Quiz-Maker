@@ -16,7 +16,11 @@ import {
     Button,
     Snackbar,
     Alert,
-    Input
+    Input,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle
 } from '@mui/material';
 import { useCoursesContext } from '../../hooks/useCourseContext';
 
@@ -32,7 +36,8 @@ const CreateExam = () => {
     const [errors, setErrors] = useState({});
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
-
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState('All');
 
     const { courses, dispatch } = useCoursesContext();
 
@@ -50,8 +55,27 @@ const CreateExam = () => {
     }, [dispatch]);
 
 
+    const filterQuestionsByType = (questions) => {
+        if (selectedType === 'All') return questions;
+        return questions.filter(question => question.type === selectedType);
+    };
+
+
+    const getChoiceLabel = (index) => {
+        const labels = ['A', 'B', 'C', 'D'];
+        return labels[index] || '';
+    };
+
     const handleAlertClose = () => {
         setAlerts({ ...alerts, open: false });
+    };
+
+    const handlePreviewOpen = () => {
+        setPreviewOpen(true);
+    };
+
+    const handlePreviewClose = () => {
+        setPreviewOpen(false);
     };
 
     const handleCourseChange = (event) => {
@@ -72,7 +96,6 @@ const CreateExam = () => {
         }
     };
 
-
     const handleYearLevelChange = (event) => {
         const yearLevel = event.target.value;
         setSelectedYearLevel(yearLevel);
@@ -92,8 +115,6 @@ const CreateExam = () => {
             }
         }
     };
-
-
 
     const handleSubjectChange = (event) => {
         const subject = event.target.value;
@@ -174,8 +195,6 @@ const CreateExam = () => {
         }
     };
 
-
-
     const handleSubmit = async () => {
         const newErrors = {};
         if (!title) newErrors.title = "Title is required";
@@ -225,13 +244,11 @@ const CreateExam = () => {
                 setSelectedQuestions({});
                 setErrors({});
                 setSubjects([]);
-
             } catch (error) {
                 console.error('Error creating exam:', error);
             }
         }
     };
-
 
     const handleSelectChange = (topicIndex, difficulty, count) => {
         const topic = topics[topicIndex];
@@ -264,7 +281,6 @@ const CreateExam = () => {
             return updatedSelection;
         });
     };
-
 
     return (
         <>
@@ -434,9 +450,97 @@ const CreateExam = () => {
             </TableContainer>
             <br />
             <br />
+            <Button variant="outlined" color="primary" sx={{marginRight: 2}} disabled={selectedSubjects.length === 0} onClick={handlePreviewOpen}>
+                Preview Exam
+            </Button>
             <Button variant="outlined" color="primary" onClick={handleSubmit}>
                 Create Exam
             </Button>
+
+            {/* Preview Modal */}
+            <Dialog open={previewOpen} onClose={handlePreviewClose}>
+                <DialogTitle>Exam Preview</DialogTitle>
+                <DialogContent>
+                    <Typography variant="h6">Title: {title}</Typography>
+                    <Typography variant="h6">Course: {selectedCourse}</Typography>
+                    <Typography variant="h6">Year Level: {selectedYearLevel}</Typography>
+                    <Typography variant="h6">Subjects: {selectedSubjects.join(', ')}</Typography>
+
+                    {/* Dropdown for selecting question type */}
+                    <select onChange={(e) => setSelectedType(e.target.value)} value={selectedType}>
+                        <option value="All">All</option>
+                        <option value="Worded Problem">Worded Problem</option>
+                        <option value="Multiple Choice">Multiple Choice</option>
+                        <option value="Essay">Essay</option>
+                        <option value="True or False">True or False</option>
+                        <option value="Identification">Identification</option>
+                    </select>
+
+                    <Typography variant="h6">Topics:</Typography>
+                    <ul style={{ listStyleType: 'none', padding: 0 }}>
+                        {topics.map((topic, topicIndex) => {
+                            // Check if there are any questions in the topic
+                            const hasQuestions = selectedQuestions[topicIndex]?.easy.length > 0 ||
+                                selectedQuestions[topicIndex]?.intermediate.length > 0 ||
+                                selectedQuestions[topicIndex]?.difficult.length > 0;
+
+                            if (!hasQuestions) return null; // Skip topics with no questions
+
+                            return (
+                                <li key={topicIndex}>
+                                    <Typography variant="subtitle1" component="span" style={{ fontWeight: 'bold' }}>
+                                        {topic.topicName}
+                                    </Typography>
+                                    <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                        {/* Display Easy Questions */}
+                                        {filterQuestionsByType(selectedQuestions[topicIndex]?.easy || []).map((question, questionIndex) => (
+                                            <li key={`easy-${topicIndex}-${questionIndex}`}>
+                                                <Typography variant="body2">{questionIndex + 1}. {question.questionText}</Typography>
+                                                <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                                    {question.choices.map((choice, choiceIndex) => (
+                                                        <li key={`easy-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
+                                                            {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </li>
+                                        ))}
+                                        {/* Display Intermediate Questions */}
+                                        {filterQuestionsByType(selectedQuestions[topicIndex]?.intermediate || []).map((question, questionIndex) => (
+                                            <li key={`intermediate-${topicIndex}-${questionIndex}`}>
+                                                <Typography variant="body2">{questionIndex + 1 + (selectedQuestions[topicIndex]?.easy?.length || 0)}. {question.questionText}</Typography>
+                                                <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                                    {question.choices.map((choice, choiceIndex) => (
+                                                        <li key={`intermediate-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
+                                                            {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </li>
+                                        ))}
+                                        {/* Display Difficult Questions */}
+                                        {filterQuestionsByType(selectedQuestions[topicIndex]?.difficult || []).map((question, questionIndex) => (
+                                            <li key={`difficult -${topicIndex}-${questionIndex}`}>
+                                                <Typography variant="body2">{questionIndex + 1 + (selectedQuestions[topicIndex]?.easy?.length || 0) + (selectedQuestions[topicIndex]?.intermediate?.length || 0)}. {question.questionText}</Typography>
+                                                <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                                    {question.choices.map((choice, choiceIndex) => (
+                                                        <li key={`difficult-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
+                                                            {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handlePreviewClose}>Close</Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 };

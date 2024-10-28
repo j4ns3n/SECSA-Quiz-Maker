@@ -52,7 +52,7 @@ const Exam = () => {
                         variant="outlined"
                         onClick={() => handleClick('view')}
                     >
-                        <VisibilityIcon /><br />View Exam
+                        <VisibilityIcon /><br />View Exams
                     </DemoPaper>
                 </Stack>
             )}

@@ -23,12 +23,17 @@ function Login({ onLogin }) {
       const json = await response.json();
 
       if (!response.ok) {
+        console.log(json);
         setError("Username or Password is Incorrect");
       } else {
-        const { token, role } = json; 
+        const { token, role, userData } = json; 
   
         localStorage.setItem('authToken', token);
-        sessionStorage.setItem('userRole', role); // Save the user role
+        sessionStorage.setItem('userRole', role);
+        sessionStorage.setItem('firstName', userData.firstName);
+        sessionStorage.setItem('middleName', userData.middleName);
+        sessionStorage.setItem('lastName', userData.lastName);
+        sessionStorage.setItem('email', userData.email);
 
         onLogin(token);
 

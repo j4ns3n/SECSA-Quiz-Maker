@@ -2,7 +2,6 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { createTheme } from '@mui/material/styles';
 import FeedIcon from '@mui/icons-material/Feed';
-import LogoutIcon from '@mui/icons-material/Logout';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import { AppProvider } from '@toolpad/core/AppProvider';
@@ -12,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import LogoSecsa from '../../assets/secsalogo.png';
 import CourseCards from '../../components/courses/courseCards';
 import Exam from '../../components/exam/exam';
-import UserComponent from '../../components/users/userComponent';
+import User from '../../components/users/userComponent';
 
 // Navigation config
 const NAVIGATION = [
@@ -23,19 +22,14 @@ const NAVIGATION = [
   },
   {
     segment: 'exams',
-    title: 'Exams',
+    title: 'Assessment',
     icon: <MenuBookIcon />,
   },
   {
     segment: 'users',
     title: 'Users',
     icon: <PeopleAltIcon />,
-  },
-  {
-    segment: 'logout',
-    title: 'Logout',
-    icon: <LogoutIcon />,
-  },
+  }
 ];
 
 // Theme setup
@@ -69,10 +63,7 @@ function DemoPageContent({ pathname, onLogout }) {
       case '/exams':
         return <Exam />;
       case '/users':
-        return <UserComponent />;
-      case '/logout':
-        onLogout();
-        return null;
+        return <User Component />;
       default:
         return <div>Page Not Found</div>;
     }
@@ -91,13 +82,36 @@ function Dashboard(props) {
   const [pathname, setPathname] = React.useState('/courses');
   const navigate = useNavigate();
 
-  const role = sessionStorage.getItem('userRole'); 
+  const role = sessionStorage.getItem('userRole');
+  const firstName = sessionStorage.getItem('firstName');
+  const middleName = sessionStorage.getItem('middleName');
+  const lastName = sessionStorage.getItem('lastName');
+  const email = sessionStorage.getItem('email');
 
-  const handleLogout = () => {
+  const [session, setSession] = React.useState({
+    user: {
+      name: `${firstName} ${middleName} ${lastName}`,
+      email: email,
+    },
+  });
+
+  const handleLogout = React.useCallback(() => {
     sessionStorage.clear();
     localStorage.clear();
     navigate('/login', { replace: true });
-  };
+  }, [navigate]); 
+
+  const authentication = React.useMemo(() => {
+    return {
+      signIn: () => {
+        setSession({});
+      },
+      signOut: () => {
+        setSession(null);
+        handleLogout(); 
+      },
+    };
+  }, [handleLogout]);
 
   const router = React.useMemo(
     () => ({
@@ -124,12 +138,14 @@ function Dashboard(props) {
         onClick: () => setPathname(`/${navItem.segment}`),
       }))}
       branding={{
-        logo: <img src={LogoSecsa} alt="SECSA logo" />,
+        logo: <img src={ LogoSecsa} alt="SECSA logo" />,
         title: 'SECSA Quiz Maker',
       }}
       router={router}
       theme={demoTheme}
       window={demoWindow}
+      authentication={authentication}
+      session={session}
     >
       <DashboardLayout>
         <DemoPageContent pathname={pathname} onLogout={handleLogout} />
