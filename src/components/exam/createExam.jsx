@@ -27,6 +27,7 @@ import { useCoursesContext } from '../../hooks/useCourseContext';
 const CreateExam = () => {
     const [title, setTitle] = useState('');
     const [selectedCourse, setSelectedCourse] = useState('');
+    const [desc, setDesc] = useState('');
     const [selectedYearLevel, setSelectedYearLevel] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [subjects, setSubjects] = useState([]);
@@ -85,6 +86,28 @@ const CreateExam = () => {
         setSelectedSubjects([]);
         setTopics([]);
         setSelectedQuestions({});
+        switch (courseName) {
+            case "BSIT":
+                setDesc("Bachelor of Science in Information Technology");
+                break;
+            case "BSCE":
+                setDesc("Bachelor of Science in Civil Engineering");
+                break;
+            case "BSME":
+                setDesc("Bachelor of Science in Mechanical Engineering");
+                break;
+            case "BSEE":
+                setDesc("Bachelor of Science in Electrical Engineering");
+                break;
+            case "BSARCH":
+                setDesc("Bachelor of Science in Architecture");
+                break;
+            default:
+                // Optional: Handle cases where `selectedCourse` does not match any case
+                console.log("Course not found");
+                break;
+        }
+
 
         const selectedCourseData = courses.find(course => course.courseName === courseName);
         if (selectedCourseData) {
@@ -211,7 +234,7 @@ const CreateExam = () => {
 
             const examSummary = {
                 title,
-                course: selectedCourse,
+                course: desc,
                 yearLevel: selectedYearLevel,
                 subjects: subjects.map(subject => subject.subjectName),
                 topics: examData
@@ -450,7 +473,7 @@ const CreateExam = () => {
             </TableContainer>
             <br />
             <br />
-            <Button variant="outlined" color="primary" sx={{marginRight: 2}} disabled={selectedSubjects.length === 0} onClick={handlePreviewOpen}>
+            <Button variant="outlined" color="primary" sx={{ marginRight: 2 }} disabled={selectedSubjects.length === 0} onClick={handlePreviewOpen}>
                 Preview Exam
             </Button>
             <Button variant="outlined" color="primary" onClick={handleSubmit}>
@@ -458,7 +481,17 @@ const CreateExam = () => {
             </Button>
 
             {/* Preview Modal */}
-            <Dialog open={previewOpen} onClose={handlePreviewClose}>
+            <Dialog
+                open={previewOpen}
+                onClose={handlePreviewClose}
+                sx={{
+                    '& .MuiDialog-paper': {
+                        width: '750px',
+                        maxHeight: '80%',
+                        margin: 'auto',
+                    },
+                }}
+            >
                 <DialogTitle>Exam Preview</DialogTitle>
                 <DialogContent>
                     <Typography variant="h6">Title: {title}</Typography>

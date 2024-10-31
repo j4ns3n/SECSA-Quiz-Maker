@@ -444,4 +444,3 @@ const CourseTable = ({ course, onBack }) => {
 };
 
 export default CourseTable;
-

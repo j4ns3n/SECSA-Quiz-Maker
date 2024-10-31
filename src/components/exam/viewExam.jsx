@@ -86,67 +86,123 @@ const ViewExam = () => {
       sections: [
         {
           children: [
+            // Institution Details
             new Paragraph({
               children: [
                 new TextRun({
-                  text: exam.title.toUpperCase(),
+                  text: `${exam.course}`,
+                  alignment: 'left',
                   bold: true,
-                  size: 36,
-                  allCaps: true,
                 }),
               ],
-              alignment: 'center',
-              spacing: { after: 400 },
-            }),
-
-            // Course, Subject, and Year Level
-            new Paragraph({
-              text: `Course: ${exam.course}`,
-              spacing: { after: 200 },
+              spacing: { after: 100 },
             }),
             new Paragraph({
-              text: `Subject: ${exam.subject}`,
-              spacing: { after: 200 },
+              text: "School of Engineering, Computer Studies and Architecture",
+              alignment: 'left',
+              spacing: { after: 100 },
             }),
             new Paragraph({
-              text: `Year Level: ${exam.yearLevel}`,
-              spacing: { after: 400 },
+              text: "Southland College, Kabankalan City, Negros Occidental",
+              alignment: 'left',
+              spacing: { after: 100 },
             }),
-
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "Instructions:",
+                  text: "______________________________________________________________________________________",
+                  alignment: 'center',
                   bold: true,
-                  underline: true,
-                  size: 28,
                 }),
               ],
-              spacing: { after: 200 },
+              spacing: { after: 400 }
             }),
+
             new Paragraph({
-              text: "I. Answer all questions.",
+              text: `${exam.title}`,
+              alignment: 'left',
+              bold: true,
               spacing: { after: 100 },
             }),
+
+            // "Building the future. Building it right."
             new Paragraph({
-              text: "II. Write your answers clearly in the space provided.",
-              spacing: { after: 100 },
-            }),
-            new Paragraph({
-              text: "III. Marks are indicated next to each question.",
+              children: [
+                new TextRun({
+                  text: '"Building the future. Building it right."',
+                  italics: true,
+                })
+              ],
+              alignment: 'left',
               spacing: { after: 400 },
             }),
 
-            // Render the shuffled questions based on their type
+            // Name
+            new Paragraph({
+
+              children: [
+                new TextRun({
+                  text: "Name:___________________________________    Course & Year: _________    Date: _________",
+                  alignment: 'left',
+                  bold: true,
+                }),
+              ],
+              spacing: { after: 300 },
+            }),
+
+            new Paragraph({
+
+              children: [
+                new TextRun({
+                  text: "General Instructions:",
+                  alignment: 'left',
+                  bold: true,
+                }),
+              ],
+              spacing: { after: 100 },
+            }),
+
+            new Paragraph({
+              text: "Cheating, either caught-in-the-act or discovered to have committed such action after the examination, shall be subject to proper disciplinary action and penalty as stipulated under the Southland College Student Manual. Cheating is identified as any of the following forms, any student who:",
+              alignment: 'justify',
+              spacing: { after: 300 },
+            }),
+            new Paragraph({
+              text: "1. Deliberately looks at another student’s examination paper.",
+              alignment: 'left',
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "2. Talks or communicates with another student.",
+              alignment: 'left',
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "3. Copies from another student’s examination paper or report.",
+              alignment: 'left',
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "4. Sends another student to take the examination/course/class requirement.",
+              alignment: 'left',
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "5. Renders or being an accessory to such aid.",
+              alignment: 'left',
+              spacing: { after: 500 },
+            }),
+
+            // Questions
             ...shuffledQuestions.flatMap((question, questionIndex) => {
               const questionText = new Paragraph({
                 children: [
                   new TextRun({
                     text: `${questionIndex + 1}. ${question.questionText}`,
-                    size: 24,
+                    size: 20,
                   }),
                 ],
-                spacing: { after: 200 },
+                spacing: { after: 150 },
               });
 
               // Handle different question types
@@ -163,11 +219,11 @@ const ViewExam = () => {
                 // Render true/false options
                 questionDetails = [
                   new Paragraph({
-                    text: "A. True",
+                    text: "True",
                     spacing: { after: 100 },
                   }),
                   new Paragraph({
-                    text: "B. False",
+                    text: "False",
                     spacing: { after: 100 },
                   }),
                 ];
@@ -175,7 +231,23 @@ const ViewExam = () => {
                 // Render identification question with blank space for the answer
                 questionDetails = [
                   new Paragraph({
-                    text: "Answer: _____________________________________________",
+                    text: "Answer: ",
+                    spacing: { after: 100 },
+                  }),
+                ];
+              } else if (question.type === 'Essay') {
+                // Render identification question with blank space for the answer
+                questionDetails = [
+                  new Paragraph({
+                    text: "Answer: ",
+                    spacing: { after: 500 },
+                  }),
+                ];
+              } else if (question.type === 'Worded Problem') {
+                // Render identification question with blank space for the answer
+                questionDetails = [
+                  new Paragraph({
+                    text: "Answer: ",
                     spacing: { after: 100 },
                   }),
                 ];
