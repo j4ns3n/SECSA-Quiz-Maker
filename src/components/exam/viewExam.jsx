@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useExamContext } from '../../hooks/useExamContext';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert, IconButton, Typography, TablePagination,
+  Table as MUITable,
+  TableBody,
+  TableCell as MUITableCell,
+  TableContainer,
+  TableHead,
+  TableRow as MUITableRow,
+  Paper,
+  CircularProgress,
+  Alert,
+  IconButton,
+  Typography,
+  TablePagination,
   Snackbar,
   Dialog,
   DialogTitle,
@@ -10,11 +21,14 @@ import {
   DialogActions,
   Button
 } from '@mui/material';
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import { red } from '@mui/material/colors';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+
+import { Document, Packer, Paragraph, Table as DocxTable, TableCell as DocxTableCell, TableRow as DocxTableRow, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
+
 
 const ViewExam = () => {
   const { exams, dispatch } = useExamContext();
@@ -218,39 +232,16 @@ const ViewExam = () => {
               } else if (question.type === 'True or False') {
                 // Render true/false options
                 questionDetails = [
-                  new Paragraph({
-                    text: "True",
-                    spacing: { after: 100 },
-                  }),
-                  new Paragraph({
-                    text: "False",
-                    spacing: { after: 100 },
-                  }),
+                  new Paragraph({ text: "True", spacing: { after: 100 } }),
+                  new Paragraph({ text: "False", spacing: { after: 100 } }),
                 ];
               } else if (question.type === 'Identification') {
                 // Render identification question with blank space for the answer
-                questionDetails = [
-                  new Paragraph({
-                    text: "Answer: ",
-                    spacing: { after: 100 },
-                  }),
-                ];
+                questionDetails = [new Paragraph({ text: "Answer: ", spacing: { after: 100 } })];
               } else if (question.type === 'Essay') {
-                // Render identification question with blank space for the answer
-                questionDetails = [
-                  new Paragraph({
-                    text: "Answer: ",
-                    spacing: { after: 500 },
-                  }),
-                ];
+                questionDetails = [new Paragraph({ text: "Answer: ", spacing: { after: 500 } })];
               } else if (question.type === 'Worded Problem') {
-                // Render identification question with blank space for the answer
-                questionDetails = [
-                  new Paragraph({
-                    text: "Answer: ",
-                    spacing: { after: 100 },
-                  }),
-                ];
+                questionDetails = [new Paragraph({ text: "Answer: ", spacing: { after: 100 } })];
               }
 
               // Add spacing after each question
@@ -263,6 +254,7 @@ const ViewExam = () => {
               ];
             }),
           ],
+
         },
       ],
     });
@@ -336,43 +328,43 @@ const ViewExam = () => {
       <br /><br />
       <Typography variant="h5" gutterBottom>List of Exams</Typography><br /><br />
       <TableContainer component={Paper}>
-        <Table>
+        <MUITable>
           <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Course</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Code</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Action</TableCell>
-            </TableRow>
+            <MUITableRow>
+              <MUITableCell sx={{ fontWeight: 'bold' }}>No.</MUITableCell>
+              <MUITableCell sx={{ fontWeight: 'bold' }}>Title</MUITableCell>
+              <MUITableCell sx={{ fontWeight: 'bold' }}>Course</MUITableCell>
+              <MUITableCell sx={{ fontWeight: 'bold' }}>Code</MUITableCell>
+              <MUITableCell align="center" sx={{ fontWeight: 'bold' }}>Action</MUITableCell>
+            </MUITableRow>
           </TableHead>
           <TableBody>
             {exams && exams.length > 0 ? (
               exams.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((exam, index) => (
-                <TableRow key={exam._id}>
-                  <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
-                  <TableCell>{exam.title}</TableCell>
-                  <TableCell>{exam.course}</TableCell>
-                  <TableCell>{exam.examCode}</TableCell>
-                  <TableCell align="center">
+                <MUITableRow key={exam._id}>
+                  <MUITableCell>{index + 1 + page * rowsPerPage}</MUITableCell>
+                  <MUITableCell>{exam.title}</MUITableCell>
+                  <MUITableCell>{exam.course}</MUITableCell>
+                  <MUITableCell>{exam.examCode}</MUITableCell>
+                  <MUITableCell align="center">
                     <IconButton onClick={() => handleViewExam(exam)}>
                       <DownloadIcon sx={{ cursor: 'pointer' }} />
                     </IconButton>
                     <IconButton onClick={() => { setExamId(exam._id); setOpenDialog(true); }}>
                       <DeleteIcon sx={{ color: red[900] }} />
                     </IconButton>
-                  </TableCell>
-                </TableRow>
+                  </MUITableCell>
+                </MUITableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={4} align="center">
+              <MUITableRow>
+                <MUITableCell colSpan={4} align="center">
                   No exams available.
-                </TableCell>
-              </TableRow>
+                </MUITableCell>
+              </MUITableRow>
             )}
           </TableBody>
-        </Table>
+        </MUITable>
       </TableContainer>
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}

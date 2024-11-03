@@ -54,6 +54,8 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [errors, setErrors] = useState({});
     const [wordedProblemAnswer, setWordedProblemAnswer] = useState('');
+    const [torAnswer, setTorAnswer] = useState('');
+    const [indetificationAnswer, setIndetificationAnswer] = useState('');
     const [essayAnswer, setEssayAnswer] = useState('');
 
     const validateForm = () => {
@@ -69,11 +71,11 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             if (!correctAnswer) formErrors.correctAnswer = 'Please select the correct answer.';
         }
 
-        if (type === 'True or False' && !correctAnswer) {
+        if (type === 'True or False' && !torAnswer) {
             formErrors.correctAnswer = 'Please select True or False.';
         }
 
-        if (type === 'Identification' && !correctAnswer) {
+        if (type === 'Identification' && !indetificationAnswer) {
             formErrors.correctAnswer = 'Please provide an answer.';
         }
 
@@ -151,6 +153,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             return;
         }
         setOpen(false);
+        setOpenAdd(false);
         setDeleteSnack(false);
     };
 
@@ -168,14 +171,20 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         if (!validateForm()) {
             return;  // Exit if form is not valid
         }
+
         const questionData = {
             type,
             difficulty,
             questionText: question,
-            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) :
-                type === 'Worded Problem' ? wordedProblemAnswer :
-                    type === 'Essay/Short Answer' ? essayAnswer : ''
+            choices: type === 'Multiple Choice' ? Object.values(choices) : '',
+            answer: type === 'Multiple Choice' ? correctAnswer : 
+                type === 'True or False' ? torAnswer :
+                    type === 'Identification' ? indetificationAnswer :
+                        type === 'Worded Problem' ? wordedProblemAnswer :
+                            type === 'Essay' ? essayAnswer : ''
         };
+
+        console.log(questionData);
 
         try {
             const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions`, {
@@ -208,15 +217,21 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     };
 
     const updateQuestion = async () => {
+
+        console.log(editingQuestion);
+
         const questionData = {
             type,
             difficulty,
             questionText: question,
+            choices: type === 'Multiple Choice' ? Object.values(choices) : undefined, // Include choices here
             answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) :
-                type === 'Worded Problem' ? wordedProblemAnswer :
-                    type === 'Essay' ? essayAnswer : ''
+                type === 'True or False' ? torAnswer :
+                    type === 'Identification' ? indetificationAnswer :
+                        type === 'Worded Problem' ? wordedProblemAnswer :
+                            type === 'Essay' ? essayAnswer : ''
         };
-        console.log(editingQuestion._id);
+        console.log(editingQuestion);
 
         try {
             const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions/${editingQuestion._id}`, {
@@ -266,6 +281,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     };
 
     const startEditing = (question) => {
+        console.log(question);
         setEditingQuestion(question);
         setType(question.type);
         setDifficulty(question.difficulty);
@@ -277,9 +293,12 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 choice3: question.choices[2] || '',
                 choice4: question.choices[3] || ''
             });
-            setCorrectAnswer(`choice${question.answer + 1}`);
-        } else {
             setCorrectAnswer(question.answer);
+        } else if(question.type === 'True or False') {
+            setTorAnswer(question.answer);
+            setIndetificationAnswer(question.answer);
+            setWordedProblemAnswer(question.answer);
+            setEssayAnswer(question.answer);
         }
     };
 
@@ -289,6 +308,10 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         setCorrectAnswer('');
         setDifficulty('');
         setType('');
+        setIndetificationAnswer('');
+        setTorAnswer('');
+        setWordedProblemAnswer('');
+        setEssayAnswer('');
         setEditingQuestion(null); // Reset the editing state
     };
 
@@ -305,7 +328,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete this Topic?
+                        Are you sure you want to delete this Question?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -323,7 +346,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                     variant="filled"
                     sx={{ width: '100%' }}
                 >
-                    Topic added successfully!
+                    Question added successfully!
                 </Alert>
             </Snackbar>
 
@@ -431,7 +454,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                     onChange={handleChoiceChange}
                                 />
                             }
-                            value="choice1"
+                            value={choices.choice1}
                         />
                         <FormControlLabel
                             control={<Radio />}
@@ -446,7 +469,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                     onChange={handleChoiceChange}
                                 />
                             }
-                            value="choice2"
+                            value={choices.choice2}
                         />
                         <FormControlLabel
                             control={<Radio />}
@@ -461,7 +484,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                     onChange={handleChoiceChange}
                                 />
                             }
-                            value="choice3"
+                            value={choices.choice3}
                         />
                         <FormControlLabel
                             control={<Radio />}
@@ -476,7 +499,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                     onChange={handleChoiceChange}
                                 />
                             }
-                            value="choice4"
+                            value={choices.choice4}
                         />
                     </RadioGroup>
                     {errors.choices && <Typography variant="caption" color="error">{errors.choices}</Typography>}
@@ -487,7 +510,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             {type === 'True or False' && (
                 <>
                     <Typography><strong>Type:</strong> {type}</Typography>
-                    <RadioGroup value={correctAnswer} onChange={handleCorrectAnswerChange}>
+                    <RadioGroup value={torAnswer} onChange={(e) => setTorAnswer(e.target.value)}>
                         <FormControlLabel
                             control={<Radio />}
                             label="True"
@@ -512,8 +535,8 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                             label="Answer"
                             variant="outlined"
                             style={{ width: "310px", marginTop: "10px" }}
-                            value={correctAnswer}
-                            onChange={handleCorrectAnswerChange}
+                            value={indetificationAnswer}
+                            onChange={(e) => setIndetificationAnswer(e.target.value)}
                         />
                         {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
                     </FormControl>

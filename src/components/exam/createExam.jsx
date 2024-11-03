@@ -528,40 +528,73 @@ const CreateExam = () => {
                                         {/* Display Easy Questions */}
                                         {filterQuestionsByType(selectedQuestions[topicIndex]?.easy || []).map((question, questionIndex) => (
                                             <li key={`easy-${topicIndex}-${questionIndex}`}>
-                                                <Typography variant="body2">{questionIndex + 1}. {question.questionText}</Typography>
-                                                <ul style={{ listStyleType: 'none', padding: 0 }}>
-                                                    {question.choices.map((choice, choiceIndex) => (
-                                                        <li key={`easy-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
-                                                            {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                                <Typography variant="body2">
+                                                    <strong>{questionIndex + 1}. {question.questionText}</strong>
+                                                </Typography>
+                                                {/* Display choices only for multiple-choice questions */}
+                                                {question.type === 'Multiple Choice' && (
+                                                    <ul style={{ listStyleType: 'none', padding: 0, paddingLeft: '20px', fontSize: "small" }}>
+                                                        {question.choices.map((choice, choiceIndex) => (
+                                                            <li key={`easy-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
+                                                                {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {/* Display answer for other question types without <li> */}
+                                                {['True or False', 'Identification', 'Worded Problem', 'Essay'].includes(question.type) && (
+                                                    <Typography style={{ paddingLeft: '20px', fontSize: "small" }}>
+                                                        Answer: {question.answer}
+                                                    </Typography>
+                                                )}
                                             </li>
                                         ))}
                                         {/* Display Intermediate Questions */}
                                         {filterQuestionsByType(selectedQuestions[topicIndex]?.intermediate || []).map((question, questionIndex) => (
                                             <li key={`intermediate-${topicIndex}-${questionIndex}`}>
-                                                <Typography variant="body2">{questionIndex + 1 + (selectedQuestions[topicIndex]?.easy?.length || 0)}. {question.questionText}</Typography>
-                                                <ul style={{ listStyleType: 'none', padding: 0 }}>
-                                                    {question.choices.map((choice, choiceIndex) => (
-                                                        <li key={`intermediate-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
-                                                            {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                                <Typography variant="body2">
+                                                    <strong>{questionIndex + 1 + (selectedQuestions[topicIndex]?.easy?.length || 0)}. {question.questionText}</strong>
+                                                </Typography>
+                                                {/* Display choices only for multiple-choice questions */}
+                                                {question.type === 'Multiple Choice' && (
+                                                    <ul style={{ listStyleType: 'none', padding: 0, paddingLeft: '20px', fontSize: "small" }}>
+                                                        {question.choices.map((choice, choiceIndex) => (
+                                                            <li key={`intermediate-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
+                                                                {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {/* Display answer for other question types without <li> */}
+                                                {['True or False', 'Identification', 'Worded Problem', 'Essay'].includes(question.type) && (
+                                                    <Typography style={{ paddingLeft: '20px', fontSize: "small" }}>
+                                                        Answer: {question.answer}
+                                                    </Typography>
+                                                )}
                                             </li>
                                         ))}
                                         {/* Display Difficult Questions */}
                                         {filterQuestionsByType(selectedQuestions[topicIndex]?.difficult || []).map((question, questionIndex) => (
-                                            <li key={`difficult -${topicIndex}-${questionIndex}`}>
-                                                <Typography variant="body2">{questionIndex + 1 + (selectedQuestions[topicIndex]?.easy?.length || 0) + (selectedQuestions[topicIndex]?.intermediate?.length || 0)}. {question.questionText}</Typography>
-                                                <ul style={{ listStyleType: 'none', padding: 0 }}>
-                                                    {question.choices.map((choice, choiceIndex) => (
-                                                        <li key={`difficult-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
-                                                            {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                            <li key={`difficult-${topicIndex}-${questionIndex}`}>
+                                                <Typography variant="body2">
+                                                    <strong>{questionIndex + 1 + (selectedQuestions[topicIndex]?.easy?.length || 0) + (selectedQuestions[topicIndex]?.intermediate?.length || 0)}. {question.questionText}</strong>
+                                                </Typography>
+                                                {/* Display choices only for multiple-choice questions */}
+                                                {question.type === 'Multiple Choice' && (
+                                                    <ul style={{ listStyleType: 'none', padding: 0, paddingLeft: '20px', fontSize: "small" }}>
+                                                        {question.choices.map((choice, choiceIndex) => (
+                                                            <li key={`difficult-choice-${topicIndex}-${questionIndex}-${choiceIndex}`}>
+                                                                {getChoiceLabel(choiceIndex)}. {choice} {choice === question.answer && "(Correct)"}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {/* Display answer for other question types without <li> */}
+                                                {['True or False', 'Identification', 'Worded Problem', 'Essay'].includes(question.type) && (
+                                                    <Typography style={{ paddingLeft: '20px', fontSize: "small" }}>
+                                                        Answer: {question.answer}
+                                                    </Typography>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
