@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const participantSchema = new Schema({
-    name: { type: String, required: true }, 
-    email: { type: String },
-    course: { type: String }
+    name: { type: String, required: true },
+    course: { type: String },
+    score: {type: Number}
 });
 
 const examSchema = new Schema({

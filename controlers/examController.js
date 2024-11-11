@@ -57,12 +57,12 @@ const deleteExam = async (req, res) => {
 };
 
 const findExam = async (req, res) => {
-    const { examCode } = req.params; 
+    const { examCode } = req.params;
 
     try {
-        const exam = await Exam.findOne({ examCode: examCode }); 
+        const exam = await Exam.findOne({ examCode: examCode });
         if (exam) {
-            res.status(200).json(exam); 
+            res.status(200).json(exam);
         } else {
             res.status(404).json({ message: 'Exam not found' });
         }
@@ -71,14 +71,39 @@ const findExam = async (req, res) => {
     }
 };
 
+const addParticipantsToExam = async (req, res) => {
 
+    const { examId } = req.params;
+    const { name, course, score } = req.body;
+    try {
+        const exam = await Exam.findById(examId);
 
+        if (!exam) {
+            console.error("Exam not found");
+            return;
+        }
 
+        const participantData = {
+            name: name,
+            course: course,
+            score: score
+        }
 
+        exam.participants.push(participantData);
+
+        await exam.save(participantData);
+
+        res.status(200).json(exam)
+        console.log('Participant added successfully');
+    } catch (error) {
+        console.error("Error adding participant:", error);
+    }
+};
 
 module.exports = {
     createExam,
     getExams,
     deleteExam,
-    findExam
+    findExam,
+    addParticipantsToExam
 }

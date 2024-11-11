@@ -4,7 +4,8 @@ const {
     createExam,
     getExams,
     deleteExam,
-    findExam
+    findExam,
+    addParticipantsToExam
 } = require('../controlers/examController')
 
 // Exam routes
@@ -12,5 +13,6 @@ router.post('/', createExam);
 router.get('/', getExams);
 router.delete('/:id', deleteExam);
 router.get('/:examCode', findExam);
+router.patch('/:examId', addParticipantsToExam);
 
 module.exports = router;
