@@ -1,17 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Card, CardContent, Typography, Button, Radio, RadioGroup, FormControlLabel, TextField, Box } from "@mui/material";
 import { useLocation } from 'react-router-dom';
 
 const QuizPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedOption, setSelectedOption] = useState("");
-  const [identificationAnswer, setIdentificationAnswer] = useState("");
+  const [userAnswers, setUserAnswers] = useState({});
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [quizResults, setQuizResults] = useState([]);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [answeredQuestions, setAnsweredQuestions] = useState(new Set()); // To track answered questions
   const location = useLocation();
-  const { quizData } = location.state || {}; // Retrieve quiz data from state
+  const { quizData } = location.state || {};
+  const { userData } = location.state || {};
 
-  console.log(quizData);
   // Flatten questions from the quizData
   const quizQuestions = quizData?.topics?.reduce((acc, topic) => {
     const { easy, intermediate, difficult } = topic.selectedQuestions;
@@ -21,50 +23,105 @@ const QuizPage = () => {
       ...intermediate,
       ...difficult
     ];
-  }, []) || []; // Empty array if quizData is undefined
+  }, []) || [];
 
+  useEffect(() => {
+    setScore(0);
+    setUserAnswers({});
+    setQuizResults([]);
+    setQuizCompleted(false);
+    setAnsweredQuestions(new Set()); // Reset answered questions when quizData changes
+  }, [quizData]);
+
+  // Handler for multiple choice and true/false answers
   const handleOptionChange = (event) => {
-    setSelectedOption(event.target.value);
+    const { value } = event.target;
+    setUserAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [currentQuestion]: { ...prevAnswers[currentQuestion], selectedOption: value }
+    }));
   };
 
+  // Handler for identification-type answers
   const handleIdentificationChange = (event) => {
-    setIdentificationAnswer(event.target.value);
+    const { value } = event.target;
+    setUserAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [currentQuestion]: { ...prevAnswers[currentQuestion], identificationAnswer: value }
+    }));
   };
 
+  // Handler for numeric answers (e.g., worded problems)
+  const handleNumericChange = (event) => {
+    const { value } = event.target;
+    setUserAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [currentQuestion]: { ...prevAnswers[currentQuestion], numericAnswer: value }
+    }));
+  };
+
+  // Handler for essay-type answers
+  const handleEssayChange = (event) => {
+    const { value } = event.target;
+    setUserAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [currentQuestion]: { ...prevAnswers[currentQuestion], essayAnswer: value }
+    }));
+  };
+
+  // Answer comparison function
+  const isAnswerCorrect = (question, userAnswer) => {
+    if (question.type === 'Multiple Choice') {
+      return userAnswer?.selectedOption === question.answer;
+    } else if (question.type === 'True or False') {
+      return userAnswer?.selectedOption.toLowerCase() === question.answer.toLowerCase();
+    } else if (question.type === 'Identification') {
+      return userAnswer?.identificationAnswer?.trim().toLowerCase() === question.answer.trim().toLowerCase();
+    } else if (question.type === 'Worded Problem') {
+      return parseFloat(userAnswer?.numericAnswer) === parseFloat(question.answer);
+    } else if (question.type === 'Essay') {
+      return userAnswer?.essayAnswer?.trim().length > 0; // Essay is considered correct if there's any answer
+    }
+    return false;
+  };
+
+  // Handle when the user goes to the next question or completes the quiz
   const handleNextQuestion = () => {
     const current = quizQuestions[currentQuestion];
-    let isCorrect = false;
+    const userAnswer = userAnswers[currentQuestion];
 
-    // Answer comparison logic
-    if (current.type === 'Multiple Choice') {
-      // Check if the index of the selected option matches the answer (index-based)
-      const selectedIndex = current.choices.indexOf(selectedOption);
-      isCorrect = selectedIndex === current.answer;
-    } else if (current.type === 'True or False') {
-      // Compare selected option to the correct answer ("true" or "false")
-      isCorrect = selectedOption === current.answer;
-    } else if (current.type === 'Identification') {
-      // Compare identification input to the answer (case-insensitive)
-      isCorrect = identificationAnswer.trim().toLowerCase() === current.answer.trim().toLowerCase();
+    // Only update score if the question hasn't been answered before
+    if (!answeredQuestions.has(currentQuestion)) {
+      // Check if the user's answer is correct
+      if (isAnswerCorrect(current, userAnswer)) {
+        setScore(prevScore => prevScore + 1);
+      }
+
+      // Collect quiz results for later display
+      setQuizResults((prevResults) => [
+        ...prevResults,
+        {
+          question: current.questionText,
+          userAnswer: userAnswer ? userAnswer.selectedOption || userAnswer.identificationAnswer || userAnswer.numericAnswer || userAnswer.essayAnswer : "No Answer",
+          correctAnswer: current.answer,
+          isCorrect: isAnswerCorrect(current, userAnswer),
+        }
+      ]);
+
+      // Mark the current question as answered
+      setAnsweredQuestions((prevSet) => new Set(prevSet).add(currentQuestion));
     }
 
-    // Update score if the answer is correct
-    if (isCorrect) {
-      setScore(score + 1);
-    }
-
-    // Proceed to next question or finish quiz
+    // Check if it's the last question, then finish the quiz
     if (currentQuestion < quizQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-      setSelectedOption("");
-      setIdentificationAnswer("");
     } else {
       setIsFinished(true);
+      setQuizCompleted(true);
     }
   };
 
   const handleBackQuestion = () => {
-    // Move to the previous question
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
     }
@@ -74,45 +131,104 @@ const QuizPage = () => {
     setCurrentQuestion(0);
     setScore(0);
     setIsFinished(false);
-    setSelectedOption("");
-    setIdentificationAnswer("");
+    setUserAnswers({});
+    setQuizResults([]);
+    setQuizCompleted(false);
+    setAnsweredQuestions(new Set()); // Reset answered questions on restart
   };
+
+  // Get the answer for a particular question
+  const getAnswerForQuestion = (questionIndex, type) => {
+    const answer = userAnswers[questionIndex];
+    if (type === 'Multiple Choice') {
+      return answer?.selectedOption || "";
+    } else if (type === 'True or False') {
+      return answer?.selectedOption || "";
+    } else if (type === 'Identification') {
+      return answer?.identificationAnswer || "";
+    } else if (type === 'Worded Problem') {
+      return answer?.numericAnswer || "";
+    } else if (type === 'Essay') {
+      return answer?.essayAnswer || "";
+    }
+    return "";
+  };
+
+  // Handle the results immediately after quiz completion (no extra click needed)
+  useEffect(() => {
+    if (isFinished) {
+      const data = {
+        name: userData.name,
+        examId: quizData._id,
+        course: userData.course,
+        score: score
+      }
+      examToDb(data)
+    }
+  }, [isFinished, userData.course, userData.name, score, quizData._id]);
+
+  const examToDb = async (data) => {
+    console.log(data);
+    try {
+      const response = await fetch(`/api/exams/${data.examId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit exam');
+      }
+
+      const examData = await response.json();
+      console.log(examData);
+    } catch (error) {
+      console.error('Exam submitted:', error);
+    }
+  }
 
   return (
     <Container
       maxWidth="md"
       sx={{
-        height: '100vh', // Full viewport height
+        height: '100vh',
         display: 'flex',
-        justifyContent: 'center', // Horizontally center
-        alignItems: 'center',    // Vertically center
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
       <Card
         sx={{
-          width: 600, // Set fixed width
-          minHeight: 400, // Set fixed minimum height
+          width: 600,
+          minHeight: 400,
           padding: 5,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
+          borderRadius: 3
         }}
       >
         <CardContent sx={{ flex: '1 1 auto', overflow: 'auto' }}>
           {!isFinished ? (
             <>
-              <Typography variant="h5">
-                {quizData.title}
-              </Typography>
-              <Typography variant="h5">
-                {quizData.course} - {quizData.yearLevel}
-              </Typography>
-              <Typography variant="h6" sx={{ mt: 5 }}>
+              <div className="container" style={{ borderBottom: "1px #8d8d8d solid", paddingBottom: "23px" }}>
+                <Typography variant="h5">
+                  <strong>{quizData.title}</strong>
+                </Typography>
+                <br />
+                <Typography variant="h5">
+                  {quizData.course}
+                </Typography>
+              </div>
+
+              <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
                 <strong>{currentQuestion + 1}. </strong>{quizQuestions[currentQuestion].questionText}
               </Typography>
 
               {quizQuestions[currentQuestion].type === 'Multiple Choice' && (
-                <RadioGroup value={selectedOption} onChange={handleOptionChange}>
+                <RadioGroup value={getAnswerForQuestion(currentQuestion, 'Multiple Choice')} onChange={handleOptionChange}>
                   {quizQuestions[currentQuestion].choices.map((option, index) => (
                     <FormControlLabel key={index} value={option} control={<Radio />} label={option} />
                   ))}
@@ -120,7 +236,7 @@ const QuizPage = () => {
               )}
 
               {quizQuestions[currentQuestion].type === 'True or False' && (
-                <RadioGroup value={selectedOption} onChange={handleOptionChange}>
+                <RadioGroup value={getAnswerForQuestion(currentQuestion, 'True or False')} onChange={handleOptionChange}>
                   <FormControlLabel value="true" control={<Radio />} label="True" />
                   <FormControlLabel value="false" control={<Radio />} label="False" />
                 </RadioGroup>
@@ -131,47 +247,74 @@ const QuizPage = () => {
                   label="Your Answer"
                   variant="outlined"
                   fullWidth
-                  value={identificationAnswer}
+                  value={getAnswerForQuestion(currentQuestion, 'Identification')}
                   onChange={handleIdentificationChange}
+                />
+              )}
+
+              {quizQuestions[currentQuestion].type === 'Worded Problem' && (
+                <TextField
+                  label="Your Answer (Numeric)"
+                  variant="outlined"
+                  fullWidth
+                  type="number"
+                  value={getAnswerForQuestion(currentQuestion, 'Worded Problem')}
+                  onChange={handleNumericChange}
+                />
+              )}
+
+              {quizQuestions[currentQuestion].type === 'Essay' && (
+                <TextField
+                  label="Your Answer (Essay)"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={getAnswerForQuestion(currentQuestion, 'Essay')}
+                  onChange={handleEssayChange}
                 />
               )}
             </>
           ) : (
             <Box textAlign="center">
-              <Typography variant="h4">Quiz Finished!</Typography>
-              <Typography variant="h5" sx={{ mt: 2 }}>{`Your score: ${score}/${quizQuestions.length}`}</Typography>
-              <Button variant="contained" color="secondary" sx={{ mt: 2 }} onClick={restartQuiz}>
+              <Typography variant="h4">Exam Finished!</Typography>
+              <Typography variant="h5" sx={{ mt: 2 }}>{`Your score: ${score} out of ${quizQuestions.length}`}</Typography>
+
+              <Box sx={{ mt: 2, maxHeight: 300, overflowY: 'auto' }}>
+                <Typography variant="h6">Review Your Answers:</Typography>
+                {quizResults.map((result, index) => (
+                  <Box key={index} sx={{ mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                    <Typography><strong>Question {index + 1}: </strong>{result.question}</Typography>
+                    <Typography><strong>Your Answer: </strong>{result.userAnswer}</Typography>
+                    <Typography><strong>Correct Answer: </strong>{result.correctAnswer}</Typography>
+                    <Typography sx={{ color: result.isCorrect ? 'green' : 'red' }}>
+                      {result.isCorrect ? 'Correct' : 'Incorrect'}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+              <br />
+              <br />
+              <Button variant="contained" color="primary" onClick={restartQuiz}>
                 Restart Quiz
               </Button>
             </Box>
           )}
         </CardContent>
 
-        {/* Navigation Buttons */}
-        {!isFinished && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleBackQuestion}
-              disabled={currentQuestion === 0}
-            >
-              Back
-            </Button>
-
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleNextQuestion}
-              disabled={
-                (quizQuestions[currentQuestion].type !== 'Identification' && !selectedOption) ||
-                (quizQuestions[currentQuestion].type === 'Identification' && !identificationAnswer.trim())
-              }
-            >
-              {currentQuestion < quizQuestions.length - 1 ? "Next" : "Finish"}
-            </Button>
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingTop: 2 }}>
+          <Button variant="contained" sx={{ backgroundColor: "#e05707" }} onClick={handleBackQuestion}>
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#e05707" }}
+            onClick={handleNextQuestion}
+            disabled={quizCompleted}
+          >
+            {currentQuestion === quizQuestions.length - 1 ? 'Finish' : 'Next'}
+          </Button>
+        </Box>
       </Card>
     </Container>
   );

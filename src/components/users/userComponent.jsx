@@ -360,7 +360,6 @@ export default function UserComponent() {
 
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="caption table">
-                    <caption>A basic table example with a caption</caption>
                     <TableHead>
                         <TableRow>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>No.</TableCell>

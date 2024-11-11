@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import loginImage from '../../assets/loginlogo.png'
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@mui/material';
 
 function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -26,8 +27,8 @@ function Login({ onLogin }) {
         console.log(json);
         setError("Username or Password is Incorrect");
       } else {
-        const { token, role, userData } = json; 
-  
+        const { token, role, userData } = json;
+
         localStorage.setItem('authToken', token);
         sessionStorage.setItem('userRole', role);
         sessionStorage.setItem('firstName', userData.firstName);
@@ -43,6 +44,10 @@ function Login({ onLogin }) {
       setError('An error occurred during login. Please try again.');
     }
   };
+
+  const handleEnterCode = async () => {
+    navigate('/exam')
+  }
 
   const styles = {
     container: {
@@ -77,7 +82,6 @@ function Login({ onLogin }) {
       borderLeft: "none"
     },
     button: {
-      width: '84%',
       padding: '10px',
       color: 'white',
       border: 'none',
@@ -94,7 +98,7 @@ function Login({ onLogin }) {
       marginTop: '10px',
     },
     imageContainer: {
-      display: 'flex',
+      display: 'grid',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: '#f0f0f0',
@@ -158,14 +162,24 @@ function Login({ onLogin }) {
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
-            <button
-              type="submit"
-              style={styles.button}
-              onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
-              onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
-            >
-              Sign In
-            </button>
+            <div style={{ display: "inline" }}>
+              <Button
+                type="submit"
+                style={{ backgroundColor: '#e05707', color: "#fff", width: "40%", marginRight: "20px" }}
+                onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+                onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+              >
+                Sign In
+              </Button>
+              <Button
+                style={{ backgroundColor: '#e05707', color: "#fff", width: "40%" }}
+                onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+                onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+                onClick={handleEnterCode}
+              >
+                Enter Code
+              </Button>
+            </div>
           </form>
         </div>
       </div>

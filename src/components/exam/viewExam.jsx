@@ -24,10 +24,12 @@ import {
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { red } from '@mui/material/colors';
 
 import { Document, Packer, Paragraph, Table as DocxTable, TableCell as DocxTableCell, TableRow as DocxTableRow, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
+import ExamAnalysis from './examAnalysis';
 
 
 const ViewExam = () => {
@@ -39,6 +41,7 @@ const ViewExam = () => {
   const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
   const [openDialog, setOpenDialog] = useState(false);
   const [examId, setExamId] = useState('');
+  const [dataAnalysis, setDataAnalysis] = useState(null);
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -304,8 +307,70 @@ const ViewExam = () => {
     return <Alert severity="error">{error}</Alert>;
   }
 
+  const handleAnalysis = (exam) => {
+    setDataAnalysis(exam);
+  }
+
   return (
     <>
+      {dataAnalysis ? (
+        <ExamAnalysis exam={dataAnalysis} />
+      ) : (
+        <>
+          <Typography variant="h5" gutterBottom>List of Exams</Typography><br /><br />
+          <TableContainer component={Paper}>
+            <MUITable>
+              <TableHead>
+                <MUITableRow>
+                  <MUITableCell sx={{ fontWeight: 'bold' }}>No.</MUITableCell>
+                  <MUITableCell sx={{ fontWeight: 'bold' }}>Title</MUITableCell>
+                  <MUITableCell sx={{ fontWeight: 'bold' }}>Course</MUITableCell>
+                  <MUITableCell sx={{ fontWeight: 'bold' }}>Code</MUITableCell>
+                  <MUITableCell align="center" sx={{ fontWeight: 'bold' }}>Action</MUITableCell>
+                </MUITableRow>
+              </TableHead>
+              <TableBody>
+                {exams && exams.length > 0 ? (
+                  exams.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((exam, index) => (
+                    <MUITableRow key={exam._id}>
+                      <MUITableCell>{index + 1 + page * rowsPerPage}</MUITableCell>
+                      <MUITableCell>{exam.title}</MUITableCell>
+                      <MUITableCell>{exam.course}</MUITableCell>
+                      <MUITableCell>{exam.examCode}</MUITableCell>
+                      <MUITableCell align="center">
+                        <IconButton onClick={() => handleAnalysis(exam)}>
+                          <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
+                        </IconButton>
+                        <IconButton onClick={() => handleViewExam(exam)}>
+                          <DownloadIcon sx={{ cursor: 'pointer' }} />
+                        </IconButton>
+                        <IconButton onClick={() => { setExamId(exam._id); setOpenDialog(true); }}>
+                          <DeleteIcon sx={{ color: red[900] }} />
+                        </IconButton>
+                      </MUITableCell>
+                    </MUITableRow>
+                  ))
+                ) : (
+                  <MUITableRow>
+                    <MUITableCell colSpan={4} align="center">
+                      No exams available.
+                    </MUITableCell>
+                  </MUITableRow>
+                )}
+              </TableBody>
+            </MUITable>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={exams.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </>
+      )}
       <Dialog
         open={openDialog}
         onClose={handleDialogClose}
@@ -325,56 +390,8 @@ const ViewExam = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <br /><br />
-      <Typography variant="h5" gutterBottom>List of Exams</Typography><br /><br />
-      <TableContainer component={Paper}>
-        <MUITable>
-          <TableHead>
-            <MUITableRow>
-              <MUITableCell sx={{ fontWeight: 'bold' }}>No.</MUITableCell>
-              <MUITableCell sx={{ fontWeight: 'bold' }}>Title</MUITableCell>
-              <MUITableCell sx={{ fontWeight: 'bold' }}>Course</MUITableCell>
-              <MUITableCell sx={{ fontWeight: 'bold' }}>Code</MUITableCell>
-              <MUITableCell align="center" sx={{ fontWeight: 'bold' }}>Action</MUITableCell>
-            </MUITableRow>
-          </TableHead>
-          <TableBody>
-            {exams && exams.length > 0 ? (
-              exams.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((exam, index) => (
-                <MUITableRow key={exam._id}>
-                  <MUITableCell>{index + 1 + page * rowsPerPage}</MUITableCell>
-                  <MUITableCell>{exam.title}</MUITableCell>
-                  <MUITableCell>{exam.course}</MUITableCell>
-                  <MUITableCell>{exam.examCode}</MUITableCell>
-                  <MUITableCell align="center">
-                    <IconButton onClick={() => handleViewExam(exam)}>
-                      <DownloadIcon sx={{ cursor: 'pointer' }} />
-                    </IconButton>
-                    <IconButton onClick={() => { setExamId(exam._id); setOpenDialog(true); }}>
-                      <DeleteIcon sx={{ color: red[900] }} />
-                    </IconButton>
-                  </MUITableCell>
-                </MUITableRow>
-              ))
-            ) : (
-              <MUITableRow>
-                <MUITableCell colSpan={4} align="center">
-                  No exams available.
-                </MUITableCell>
-              </MUITableRow>
-            )}
-          </TableBody>
-        </MUITable>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={exams.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      {/* <br /><br /> */}
+
       <Snackbar open={alerts.open} autoHideDuration={2000} onClose={handleSnackbarClose}>
         <Alert
           onClose={handleSnackbarClose}

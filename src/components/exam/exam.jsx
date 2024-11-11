@@ -58,6 +58,10 @@ const Exam = () => {
             )}
             {activeComponent && (
                 <div>
+                    {activeComponent === 'create' && <CreateExam />}
+                    {activeComponent === 'view' && <ExamContextProvider><ViewExam /></ExamContextProvider>}
+                    <br />
+                    <br />
                     <Button
                         variant="outlined"
                         onClick={handleBackClick}
@@ -65,8 +69,6 @@ const Exam = () => {
                     >
                         Back
                     </Button>
-                    {activeComponent === 'create' && <CreateExam />}
-                    {activeComponent === 'view' && <ExamContextProvider><ViewExam /></ExamContextProvider>}
                 </div>
             )}
         </div>

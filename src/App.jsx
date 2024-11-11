@@ -75,7 +75,7 @@ function AppRoutes() {
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />}
       />
       <Route path="/exam" element={<QuizApp />} />
-      <Route path="/quiz/:quizTitle" element={<QuizPage />} />
+      <Route path="/exam/:quizTitle" element={<QuizPage />} />
       {/* Protected routes */}
       <Route
         path="/*"

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  Button,
   Card,
   CardContent,
   CardActions,
@@ -16,7 +15,7 @@ import { useEffect } from "react";
 
 const CourseCards = () => {
   const [selectedCourse, setSelectedCourse] = React.useState(null); // Track selected course
-  
+
   const { courses, dispatch } = useCoursesContext();
 
   useEffect(() => {
@@ -50,7 +49,8 @@ const CourseCards = () => {
             courses.map((course, index) => (
               <Grid item xs={8} key={index}>
                 <Card sx={{ maxWidth: 345, padding: '10px' }}>
-                  <CardActionArea>
+                  <CardActionArea
+                    onClick={() => handleViewDetails(course)}>
                     <CardMedia
                       component="div"
                       sx={{
@@ -89,14 +89,6 @@ const CourseCards = () => {
                     </CardContent>
                   </CardActionArea>
                   <CardActions>
-                    <Button
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      onClick={() => handleViewDetails(course)}
-                    >
-                      View Details
-                    </Button>
                   </CardActions>
                 </Card>
               </Grid>
