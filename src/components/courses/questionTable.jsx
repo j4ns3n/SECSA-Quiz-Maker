@@ -46,6 +46,9 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         choice3: '',
         choice4: ''
     });
+    const [filteredDifficulty, setFilteredDifficulty] = useState('');
+    const [filteredType, setFilteredType] = useState('');
+    const [filteredQuestions, setFilteredQuestions] = useState(topic.questions || []);
     const [questions, setQuestions] = useState(topic.questions || []);
     const [editingQuestion, setEditingQuestion] = useState(null);
     const [openDialog, setOpenDialog] = React.useState(false);
@@ -55,8 +58,43 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     const [errors, setErrors] = useState({});
     const [wordedProblemAnswer, setWordedProblemAnswer] = useState('');
     const [torAnswer, setTorAnswer] = useState('');
-    const [indetificationAnswer, setIndetificationAnswer] = useState('');
+    const [identificationAnswer, setIdentificationAnswer] = useState('');
     const [essayAnswer, setEssayAnswer] = useState('');
+    const [openAddModal, setOpenAddModal] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
+    const handleSearchFilter = () => {
+        const filtered = questions.filter((q) => {
+            // Treat "All" or empty string as "match everything"
+            const matchesDifficulty = filteredDifficulty && filteredDifficulty !== "All"
+                ? q.difficulty === filteredDifficulty
+                : true;
+            const matchesType = filteredType && filteredType !== "All"
+                ? q.type === filteredType
+                : true;
+
+            return matchesDifficulty && matchesType;
+        });
+
+        setFilteredQuestions(filtered);
+        setPage(0); // Reset to the first page
+    };
+
+
+    const resetSearchFilter = () => {
+        setFilteredDifficulty('');
+        setFilteredType('');
+        setFilteredQuestions(questions); // Reset to all questions
+    };
+
+    const handleChangeDifficultyFilter = (event) => {
+        setFilteredDifficulty(event.target.value);
+    };
+
+    const handleChangeTypeFilter = (event) => {
+        setFilteredType(event.target.value);
+    };
 
     const validateForm = () => {
         let formErrors = {};
@@ -75,7 +113,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
             formErrors.correctAnswer = 'Please select True or False.';
         }
 
-        if (type === 'Identification' && !indetificationAnswer) {
+        if (type === 'Identification' && !identificationAnswer) {
             formErrors.correctAnswer = 'Please provide an answer.';
         }
 
@@ -97,54 +135,8 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
     };
 
     const closeDialogBox = () => {
+        resetForm();
         setOpenDialog(false);
-    }; const handleChangeDifficulty = (event) => {
-        setDifficulty(event.target.value);
-        // Clear error when the difficulty is selected
-        if (event.target.value) {
-            setErrors((prevErrors) => ({ ...prevErrors, difficulty: '' }));
-        }
-    };
-
-    const handleChangeType = (event) => {
-        setType(event.target.value);
-        setCorrectAnswer('');
-        setChoices({ choice1: '', choice2: '', choice3: '', choice4: '' });
-
-        // Clear error when the type is selected
-        if (event.target.value) {
-            setErrors((prevErrors) => ({ ...prevErrors, type: '' }));
-        }
-    };
-
-    const handleCorrectAnswerChange = (event) => {
-        setCorrectAnswer(event.target.value);
-
-        // Clear error when the correct answer is selected
-        if (event.target.value) {
-            setErrors((prevErrors) => ({ ...prevErrors, correctAnswer: '' }));
-        }
-    };
-
-    const handleChoiceChange = (event) => {
-        setChoices({
-            ...choices,
-            [event.target.name]: event.target.value
-        });
-
-        // Clear error when a choice is entered
-        if (event.target.value) {
-            setErrors((prevErrors) => ({ ...prevErrors, choices: '' }));
-        }
-    };
-
-    const handleQuestionChange = (event) => {
-        setQuestion(event.target.value);
-
-        // Clear error when the question is entered
-        if (event.target.value) {
-            setErrors((prevErrors) => ({ ...prevErrors, question: '' }));
-        }
     };
 
 
@@ -155,6 +147,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         setOpen(false);
         setOpenAdd(false);
         setDeleteSnack(false);
+        resetForm();
     };
 
     const handleChangePage = (event, newPage) => {
@@ -166,29 +159,37 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         setPage(0);
     };
 
-    const addQuestion = async () => {
-
-        if (!validateForm()) {
-            return;  // Exit if form is not valid
-        }
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
 
         const questionData = {
             type,
             difficulty,
             questionText: question,
             choices: type === 'Multiple Choice' ? Object.values(choices) : '',
-            answer: type === 'Multiple Choice' ? correctAnswer : 
-                type === 'True or False' ? torAnswer :
-                    type === 'Identification' ? indetificationAnswer :
-                        type === 'Worded Problem' ? wordedProblemAnswer :
-                            type === 'Essay' ? essayAnswer : ''
+            answer:
+                type === 'Multiple Choice'
+                    ? correctAnswer
+                    : type === 'True or False'
+                        ? torAnswer
+                        : type === 'Identification'
+                            ? identificationAnswer
+                            : type === 'Worded Problem'
+                                ? wordedProblemAnswer
+                                : type === 'Essay'
+                                    ? essayAnswer
+                                    : ''
         };
 
-        console.log(questionData);
-
         try {
-            const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions`, {
-                method: 'PATCH',
+            const url = editingQuestion
+                ? `/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions/${editingQuestion._id}`
+                : `/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions`;
+
+            const method = editingQuestion ? 'PATCH' : 'PATCH';
+
+            const response = await fetch(url, {
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -197,95 +198,62 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
 
             if (response.ok) {
                 const result = await response.json();
-                setOpenAdd(true);
-                if (!result.newQuestion) {
-                    console.error('No newQuestion found in the response');
-                    return;
-                }
-
-                const updatedQuestions = [...questions, result.newQuestion];
-                setQuestions(updatedQuestions);
-                onUpdateQuestions(updatedQuestions);
-
-                resetForm();
-            } else {
-                console.error('Failed to add question');
-            }
-        } catch (err) {
-            console.error('Error adding question:', err);
-        }
-    };
-
-    const updateQuestion = async () => {
-
-        console.log(editingQuestion);
-
-        const questionData = {
-            type,
-            difficulty,
-            questionText: question,
-            choices: type === 'Multiple Choice' ? Object.values(choices) : undefined, // Include choices here
-            answer: type === 'Multiple Choice' ? Object.keys(choices).indexOf(correctAnswer) :
-                type === 'True or False' ? torAnswer :
-                    type === 'Identification' ? indetificationAnswer :
-                        type === 'Worded Problem' ? wordedProblemAnswer :
-                            type === 'Essay' ? essayAnswer : ''
-        };
-        console.log(editingQuestion);
-
-        try {
-            const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions/${editingQuestion._id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(questionData),
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                const updatedQuestions = questions.map(q => (q._id === result.updatedQuestion._id ? result.updatedQuestion : q));
-                setOpen(true);
+                const updatedQuestions = editingQuestion
+                    ? questions.map((q) =>
+                        q._id === result.updatedQuestion._id ? result.updatedQuestion : q
+                    )
+                    : [...questions, result.newQuestion];
 
                 setQuestions(updatedQuestions);
+                setFilteredQuestions(updatedQuestions);
                 onUpdateQuestions(updatedQuestions);
-                resetForm();
+
+                setSnackbarMessage(editingQuestion ? 'Question updated successfully!' : 'Question added successfully!');
+                setSnackbarOpen(true);
+
+                setOpenAddModal(false);
+                resetForm(); // Clear the editing state and form
             } else {
-                console.error('Failed to update question');
+                console.error('Failed to save question');
             }
         } catch (err) {
-            console.error('Error updating question:', err);
+            console.error('Error saving question:', err);
         }
     };
 
     const deleteQuestion = async () => {
         try {
-            const response = await fetch(`/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions/${questionId}`, {
-                method: 'DELETE'
-            });
+            const response = await fetch(
+                `/api/courses/${courseId}/year/${selectedYearLevel}/subject/${subjectName}/topics/${topic.topicName}/questions/${questionId}`,
+                { method: 'DELETE' }
+            );
 
             if (response.ok) {
-                const result = await response.json();
-                console.log('Question deleted successfully', result);
-                const updatedQuestions = result.updatedQuestions;
+                const updatedQuestions = questions.filter((q) => q._id !== questionId);
                 setQuestions(updatedQuestions);
+                setFilteredQuestions(updatedQuestions);
                 onUpdateQuestions(updatedQuestions);
+
                 setDeleteSnack(true);
                 setOpenDialog(false);
             } else {
                 console.error('Failed to delete question');
+                alert('Failed to delete the question. Please try again.');
             }
         } catch (err) {
             console.error('Error deleting question:', err);
+            alert('An error occurred while deleting the question.');
         }
     };
 
-    const startEditing = (question) => {
-        console.log(question);
+
+    const openEditQuestionModal = (question) => {
+        // Populate modal with the question data
         setEditingQuestion(question);
-        setType(question.type);
         setDifficulty(question.difficulty);
+        setType(question.type);
         setQuestion(question.questionText);
+
         if (question.type === 'Multiple Choice') {
             setChoices({
                 choice1: question.choices[0] || '',
@@ -294,12 +262,17 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 choice4: question.choices[3] || ''
             });
             setCorrectAnswer(question.answer);
-        } else if(question.type === 'True or False') {
+        } else if (question.type === 'True or False') {
             setTorAnswer(question.answer);
-            setIndetificationAnswer(question.answer);
+        } else if (question.type === 'Identification') {
+            setIdentificationAnswer(question.answer);
+        } else if (question.type === 'Worded Problem') {
             setWordedProblemAnswer(question.answer);
+        } else if (question.type === 'Essay') {
             setEssayAnswer(question.answer);
         }
+
+        setOpenAddModal(true); // Open the modal
     };
 
     const resetForm = () => {
@@ -308,11 +281,21 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
         setCorrectAnswer('');
         setDifficulty('');
         setType('');
-        setIndetificationAnswer('');
+        setIdentificationAnswer('');
         setTorAnswer('');
         setWordedProblemAnswer('');
         setEssayAnswer('');
-        setEditingQuestion(null); // Reset the editing state
+        setEditingQuestion(null);
+    };
+
+    const closeAddQuestionModal = () => {
+        setOpenAddModal(false);
+        resetForm();
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+        setSnackbarMessage('');
     };
 
     return (
@@ -323,43 +306,21 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">
-                    {"Warning!"}
-                </DialogTitle>
+                <DialogTitle id="alert-dialog-title">Warning!</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete this Question?
+                        Are you sure you want to delete this question?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDialogBox}>No</Button>
-                    <Button onClick={deleteQuestion} autoFocus>
+                    <Button onClick={closeDialogBox} color="primary">
+                        No
+                    </Button>
+                    <Button onClick={deleteQuestion} color="primary" autoFocus>
                         Yes
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            <Snackbar open={openAdd} autoHideDuration={2000} onClose={handleClose}>
-                <Alert
-                    onClose={handleClose}
-                    severity="success"
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    Question added successfully!
-                </Alert>
-            </Snackbar>
-
-            <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}>
-                <Alert
-                    onClose={handleClose}
-                    severity="success"
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    Question updated successfully!
-                </Alert>
-            </Snackbar>
 
             <Snackbar open={deleteSnack} autoHideDuration={2000} onClose={handleClose}>
                 <Alert
@@ -377,247 +338,71 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 Questions for {topic.topicName}
             </Typography>
             <br />
-            <FormControl style={{ width: "150px", marginRight: "10px" }}>
-                <InputLabel id="difficulty-select-label">Difficulty</InputLabel>
-                <Select
-                    labelId="difficulty-select-label"
-                    id="difficulty-select-select"
-                    value={difficulty}
-                    label="Difficulty"
-                    onChange={handleChangeDifficulty}
-                >
-                    <MenuItem value={"Easy"}>Easy</MenuItem>
-                    <MenuItem value={"Intermediate"}>Intermediate</MenuItem>
-                    <MenuItem value={"Difficult"}>Difficult</MenuItem>
-                </Select>
-                {errors.difficulty && <Typography variant="caption" color="error">{errors.difficulty}</Typography>}
-            </FormControl>
+            <br />
+            <Box display="flex" alignItems="center" mb={2}>
+                <FormControl style={{ width: "150px", marginRight: "10px" }}>
+                    <InputLabel id="filter-difficulty-label">Filter Difficulty</InputLabel>
+                    <Select
+                        labelId="filter-difficulty-label"
+                        value={filteredDifficulty}
+                        onChange={handleChangeDifficultyFilter}
+                        label="Filter Difficulty"
+                    >
+                        <MenuItem value="All">All</MenuItem>
+                        <MenuItem value="Easy">Easy</MenuItem>
+                        <MenuItem value="Intermediate">Intermediate</MenuItem>
+                        <MenuItem value="Difficult">Difficult</MenuItem>
+                    </Select>
+                </FormControl>
 
-            <FormControl style={{ width: "150px", marginRight: "10px" }}>
-                <InputLabel id="type-select-label">Type</InputLabel>
-                <Select
-                    labelId="type-select-label"
-                    id="type-select-select"
-                    value={type}
-                    label="Type"
-                    helperText={errors.type}
-                    onChange={handleChangeType}
-                >
-                    <MenuItem value={"Multiple Choice"}>Multiple Choice</MenuItem>
-                    <MenuItem value={"True or False"}>True or False</MenuItem>
-                    <MenuItem value={"Identification"}>Identification</MenuItem>
-                    <MenuItem value={"Worded Problem"}>Worded Problem</MenuItem>
-                    <MenuItem value={"Essay"}>Essay</MenuItem>
-                </Select>
-                {errors.type && <Typography variant="caption" color="error">{errors.type}</Typography>}
-            </FormControl>
-            <br />
-            <br />
-            <FormControl>
-                <TextField
-                    id="question"
-                    label="Question"
+                <FormControl style={{ width: "150px", marginRight: "10px" }}>
+                    <InputLabel id="filter-type-label">Filter Type</InputLabel>
+                    <Select
+                        labelId="filter-type-label"
+                        value={filteredType}
+                        onChange={handleChangeTypeFilter}
+                        label="Filter Type"
+                    >
+                        <MenuItem value="All">All</MenuItem>
+                        <MenuItem value="Multiple Choice">Multiple Choice</MenuItem>
+                        <MenuItem value="True or False">True or False</MenuItem>
+                        <MenuItem value="Identification">Identification</MenuItem>
+                        <MenuItem value="Worded Problem">Worded Problem</MenuItem>
+                        <MenuItem value="Essay">Essay</MenuItem>
+                    </Select>
+                </FormControl>
+
+                <Button
+                    onClick={handleSearchFilter}
+                    size="large"
+                    color="primary"
                     variant="outlined"
-                    minRows={3}
-                    maxRows={5}
-                    multiline
-                    fullWidth  // Adjusts the width to fit the container
-                    InputProps={{
-                        style: {
-                            resize: "vertical",  // Allows vertical resizing
-                            overflow: "auto",  // Adds scroll if needed
-                        },
-                    }}
-                    style={{ width: "310px" }}
-                    value={question}
-                    onChange={handleQuestionChange}
-                />
-                {errors.question && <Typography variant="caption" color="error">{errors.question}</Typography>}
-            </FormControl>
-            <br />
-            <br />
+                    sx={{ padding: '13px', marginRight: '10px' }}
+                >
+                    Apply Filters
+                </Button>
 
-            {type === 'Multiple Choice' && (
-                <>
-                    <Typography><strong>Type:</strong> {type}</Typography>
-                    <RadioGroup value={correctAnswer} onChange={handleCorrectAnswerChange}>
-                        <FormControlLabel
-                            control={<Radio />}
-                            label={
-                                <TextField
-                                    id="choice1"
-                                    name="choice1"
-                                    label="Choice 1"
-                                    variant="outlined"
-                                    style={{ width: "310px", marginTop: "10px", marginRight: "10px" }}
-                                    value={choices.choice1}
-                                    onChange={handleChoiceChange}
-                                />
-                            }
-                            value={choices.choice1}
-                        />
-                        <FormControlLabel
-                            control={<Radio />}
-                            label={
-                                <TextField
-                                    id="choice2"
-                                    name="choice2"
-                                    label="Choice 2"
-                                    variant="outlined"
-                                    style={{ width: "310px", marginTop: "10px" }}
-                                    value={choices.choice2}
-                                    onChange={handleChoiceChange}
-                                />
-                            }
-                            value={choices.choice2}
-                        />
-                        <FormControlLabel
-                            control={<Radio />}
-                            label={
-                                <TextField
-                                    id="choice3"
-                                    name="choice3"
-                                    label="Choice 3"
-                                    variant="outlined"
-                                    style={{ width: "310px", marginTop: "10px", marginRight: "10px" }}
-                                    value={choices.choice3}
-                                    onChange={handleChoiceChange}
-                                />
-                            }
-                            value={choices.choice3}
-                        />
-                        <FormControlLabel
-                            control={<Radio />}
-                            label={
-                                <TextField
-                                    id="choice4"
-                                    name="choice4"
-                                    label="Choice 4"
-                                    variant="outlined"
-                                    style={{ width: "310px", marginTop: "10px" }}
-                                    value={choices.choice4}
-                                    onChange={handleChoiceChange}
-                                />
-                            }
-                            value={choices.choice4}
-                        />
-                    </RadioGroup>
-                    {errors.choices && <Typography variant="caption" color="error">{errors.choices}</Typography>}
-                    {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
-                </>
-            )}
-
-            {type === 'True or False' && (
-                <>
-                    <Typography><strong>Type:</strong> {type}</Typography>
-                    <RadioGroup value={torAnswer} onChange={(e) => setTorAnswer(e.target.value)}>
-                        <FormControlLabel
-                            control={<Radio />}
-                            label="True"
-                            value="True"
-                        />
-                        <FormControlLabel
-                            control={<Radio />}
-                            label="False"
-                            value="False"
-                        />
-                    </RadioGroup>
-                    {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
-                </>
-            )}
-
-            {type === 'Identification' && (
-                <>
-                    <Typography><strong>Type:</strong> {type}</Typography>
-                    <FormControl>
-                        <TextField
-                            id="identification"
-                            label="Answer"
-                            variant="outlined"
-                            style={{ width: "310px", marginTop: "10px" }}
-                            value={indetificationAnswer}
-                            onChange={(e) => setIndetificationAnswer(e.target.value)}
-                        />
-                        {errors.correctAnswer && <Typography variant="caption" color="error">{errors.correctAnswer}</Typography>}
-                    </FormControl>
-                </>
-            )}
-
-            {/* New input for Worded Problem */}
-            {type === 'Worded Problem' && (
-                <>
-                    <Typography><strong>Type:</strong> {type}</Typography>
-                    <FormControl>
-                        <TextField
-                            id="wordedProblemAnswer"
-                            label="Numeric Answer"
-                            variant="outlined"
-                            style={{ width: "310px", marginTop: "10px" }}
-                            value={wordedProblemAnswer}
-                            onChange={(e) => setWordedProblemAnswer(e.target.value)}
-                            type="number" // Ensure only numeric input
-                        />
-                        {errors.wordedProblemAnswer && <Typography variant="caption" color="error">{errors.wordedProblemAnswer}</Typography>}
-                    </FormControl>
-                </>
-            )}
-
-            {/* New input for Essay */}
-            {type === 'Essay' && (
-                <>
-                    <Typography><strong>Type:</strong> {type}</Typography>
-                    <FormControl>
-                        <TextField
-                            id="essayAnswer"
-                            label="Answer"
-                            variant="outlined"
-                            style={{ width: "310px", marginTop: "10px" }}
-                            value={essayAnswer}
-                            onChange={(e) => setEssayAnswer(e.target.value)}
-                            multiline={true} // Allow multiple lines
-                            rows={4} // Set the number of rows
-                        />
-                        {errors.essayAnswer && <Typography variant="caption" color="error">{errors.essayAnswer}</Typography>}
-                    </FormControl>
-                </>
-            )}
-
-            <br />
-            <br />
-            {editingQuestion ? (
-                <>
-                    <Button
-                        size="large"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ paddingBottom: '4px' }}
-                        onClick={updateQuestion}
-                    >
-                        Update
-                    </Button>
-                    <Button
-                        size="large"
-                        color="error"
-                        variant="outlined"
-                        sx={{ paddingBottom: '4px', ml: 2 }}
-                        onClick={resetForm}
-                    >
-                        Cancel
-                    </Button>
-                </>
-            ) : (
                 <Button
                     size="large"
                     color="primary"
                     variant="outlined"
-                    sx={{ paddingBottom: '4px' }}
-                    onClick={addQuestion}
-                >
-                    Submit
+                    sx={{ padding: '13px' }}
+                    onClick={resetSearchFilter}>
+                    Reset Filters
                 </Button>
-            )}
+            </Box>
 
-            <br /><br />
+            <Button
+                size="large"
+                color="primary"
+                variant="outlined"
+                sx={{ padding: '13px', marginBottom: '20px' }}
+                onClick={() => setOpenAddModal(true)}
+            >
+                Add Question
+            </Button>
+
+            {/* Questions Table */}
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="questions table">
                     <TableHead>
@@ -630,17 +415,17 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {questions.length > 0 ? (
-                            questions
+                        {filteredQuestions.length > 0 ? (
+                            filteredQuestions
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((question, index) => (
                                     <TableRow key={question._id}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell>{question.questionText}</TableCell>
+                                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                                        <TableCell sx={{ width: '350px' }}>{question.questionText}</TableCell>
                                         <TableCell>{question.difficulty}</TableCell>
                                         <TableCell>{question.type}</TableCell>
                                         <TableCell align="center">
-                                            <IconButton onClick={() => startEditing(question)}>
+                                            <IconButton onClick={() => openEditQuestionModal(question)}>
                                                 <EditIcon sx={{ color: blue[600] }} />
                                             </IconButton>
                                             <IconButton onClick={() => openDialogBox(question._id)}>
@@ -651,7 +436,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                                 ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4}>No questions available</TableCell>
+                                <TableCell colSpan={5}>No questions available</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -659,13 +444,161 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={questions.length}
+                    count={filteredQuestions.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </TableContainer>
+
+            <Dialog open={openAddModal} onClose={closeAddQuestionModal} fullWidth maxWidth="sm">
+                <DialogTitle>{editingQuestion ? 'Edit Question' : 'Add New Question'}</DialogTitle>
+                <DialogContent>
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel>Difficulty</InputLabel>
+                        <Select
+                            labelId="difficulty-label"
+                            label="Difficulty"
+                            value={difficulty} onChange={(e) => setDifficulty(e.target.value)}
+                        >
+                            <MenuItem value="Easy">Easy</MenuItem>
+                            <MenuItem value="Intermediate">Intermediate</MenuItem>
+                            <MenuItem value="Difficult">Difficult</MenuItem>
+                        </Select>
+                        {errors.difficulty && <Typography color="error">{errors.difficulty}</Typography>}
+                    </FormControl>
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel>Type</InputLabel>
+                        <Select
+                            labelId="type-label"
+                            label="Type"
+                            value={type} onChange={(e) => setType(e.target.value)}
+                        >
+                            <MenuItem value="Multiple Choice">Multiple Choice</MenuItem>
+                            <MenuItem value="True or False">True or False</MenuItem>
+                            <MenuItem value="Identification">Identification</MenuItem>
+                            <MenuItem value="Worded Problem">Worded Problem</MenuItem>
+                            <MenuItem value="Essay">Essay</MenuItem>
+                        </Select>
+                        {errors.type && <Typography color="error">{errors.type}</Typography>}
+                    </FormControl>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="Question"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        margin="normal"
+                    />
+                    {errors.question && <Typography color="error">{errors.question}</Typography>}
+
+                    {/* Dynamic Inputs Based on Question Type */}
+                    {type === 'Multiple Choice' && (
+                        <>
+                            <Typography variant="subtitle1">Choices:</Typography>
+                            <RadioGroup
+                                value={correctAnswer}
+                                onChange={(e) => setCorrectAnswer(e.target.value)}
+                            >
+                                {['choice1', 'choice2', 'choice3', 'choice4'].map((choice, index) => (
+                                    <Box key={choice} display="flex" alignItems="center">
+                                        <FormControlLabel
+                                            control={<Radio />}
+                                            value={choices[choice]} // The value for the radio button
+                                            label=""
+                                            sx={{ marginRight: 1 }} // Adjust spacing
+                                        />
+                                        <TextField
+                                            fullWidth
+                                            margin="normal"
+                                            label={`Choice ${index + 1}`}
+                                            value={choices[choice]}
+                                            onChange={(e) =>
+                                                setChoices((prev) => ({ ...prev, [choice]: e.target.value }))
+                                            }
+                                        />
+                                    </Box>
+                                ))}
+                            </RadioGroup>
+                        </>
+
+                    )}
+
+                    {type === 'True or False' && (
+                        <RadioGroup
+                            value={torAnswer}
+                            onChange={(e) => setTorAnswer(e.target.value)}
+                        >
+                            <FormControlLabel control={<Radio />} value="True" label="True" />
+                            <FormControlLabel control={<Radio />} value="False" label="False" />
+                        </RadioGroup>
+                    )}
+
+                    {type === 'Identification' && (
+                        <TextField
+                            fullWidth
+                            label="Answer"
+                            value={identificationAnswer}
+                            onChange={(e) => setIdentificationAnswer(e.target.value)}
+                            margin="normal"
+                        />
+                    )}
+
+                    {type === 'Worded Problem' && (
+                        <TextField
+                            fullWidth
+                            label="Numeric Answer"
+                            type="number"
+                            value={wordedProblemAnswer}
+                            onChange={(e) => setWordedProblemAnswer(e.target.value)}
+                            margin="normal"
+                        />
+                    )}
+
+                    {type === 'Essay' && (
+                        <TextField
+                            fullWidth
+                            multiline
+                            rows={4}
+                            label="Answer"
+                            value={essayAnswer}
+                            onChange={(e) => setEssayAnswer(e.target.value)}
+                            margin="normal"
+                        />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={closeAddQuestionModal}
+                        size="large"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ marginBottom: '20px' }}
+                    >Cancel</Button>
+                    <Button
+                        onClick={handleSubmit}
+                        size="large"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ marginBottom: '20px', marginRight: '15px' }}
+                    >
+                        {editingQuestion ? 'Update' : 'Submit'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity="success" variant="filled">
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
 
             <Button onClick={onBackToTopics} sx={{ mt: 2 }}>
                 Back to Topics

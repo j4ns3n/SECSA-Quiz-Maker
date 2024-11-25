@@ -354,36 +354,38 @@ const CourseTable = ({ course, onBack }) => {
               </TableHead>
               <TableBody>
                 {selectedYearSubjects.length > 0 ? (
-                  selectedYearSubjects.map((subject, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell sx={{ maxWidth: 251 }}>{subject.subjectCode}</TableCell>
-                      <TableCell>{subject.subjectName}</TableCell>
-                      <TableCell>{subject.topics.length}
-                      </TableCell><TableCell align="center">
-                        {userRole === 'admin' ? (
-                          <>
+                  selectedYearSubjects
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Slice the array for pagination
+                    .map((subject, index) => (
+                      <TableRow key={subject._id}> {/* Use subject._id for a unique key */}
+                        <TableCell>{page * rowsPerPage + index + 1}</TableCell> {/* Adjust index for pagination */}
+                        <TableCell sx={{ maxWidth: 251 }}>{subject.subjectCode}</TableCell>
+                        <TableCell>{subject.subjectName}</TableCell>
+                        <TableCell>{subject.topics.length}</TableCell>
+                        <TableCell align="center">
+                          {userRole === 'admin' ? (
+                            <>
+                              <IconButton onClick={() => handleViewTopics(subject)}>
+                                <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
+                              </IconButton>
+                              <IconButton onClick={() => handleEditSubject(subject)}>
+                                <EditIcon sx={{ color: blue[600] }} />
+                              </IconButton>
+                              <IconButton onClick={() => openDialogBox(subject._id)}>
+                                <DeleteIcon sx={{ color: red[900] }} />
+                              </IconButton>
+                            </>
+                          ) : userRole === 'Teacher' ? (
                             <IconButton onClick={() => handleViewTopics(subject)}>
                               <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
                             </IconButton>
-                            <IconButton onClick={() => handleEditSubject(subject)}>
-                              <EditIcon sx={{ color: blue[600] }} />
-                            </IconButton>
-                            <IconButton onClick={() => openDialogBox(subject._id)}>
-                              <DeleteIcon sx={{ color: red[900] }} />
-                            </IconButton>
-                          </>
-                        ) : userRole === 'Teacher' ? (
-                          <IconButton onClick={() => handleViewTopics(subject)}>
-                            <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
-                          </IconButton>
-                        ) : null}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                    ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4}>No subjects available.</TableCell>
+                    <TableCell colSpan={5}>No subjects available.</TableCell>
                   </TableRow>
                 )}
               </TableBody>

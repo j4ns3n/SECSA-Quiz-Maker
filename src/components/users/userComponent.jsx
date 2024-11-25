@@ -18,7 +18,11 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
-    Snackbar
+    Snackbar,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -58,6 +62,8 @@ export default function UserComponent() {
     });
 
 
+    const [roleFilter, setRoleFilter] = useState('all');
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -77,6 +83,17 @@ export default function UserComponent() {
         fetchUsers();
     }, [dispatch]);
 
+
+
+    const filteredUsers = roleFilter === 'all'
+        ? users
+        : users.filter(user => user.role.toLowerCase() === roleFilter);
+
+    const handleRoleChange = (event) => {
+        const selectedRole = event.target.value;
+        setRoleFilter(selectedRole);
+        console.log('Selected role:', selectedRole); // Log the selected role to the console
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -369,12 +386,26 @@ export default function UserComponent() {
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Username</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Email</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Department</TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                                <FormControl variant="standard" fullWidth>
+                                    <InputLabel>Role</InputLabel>
+                                    <Select
+                                        value={roleFilter}
+                                        onChange={handleRoleChange}
+                                        label="Role"
+                                    >
+                                        <MenuItem value="all">All</MenuItem>
+                                        <MenuItem value="teacher">Teacher</MenuItem>
+                                        <MenuItem value="student">Student</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </TableCell>
                             <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {users && users.length > 0 ? (
-                            users.map((u, index) => (
+                        {filteredUsers && filteredUsers.length > 0 ? (
+                            filteredUsers.map((u, index) => (
                                 <TableRow key={u._id}>
                                     <TableCell align="left">{index + 1}</TableCell>
                                     <TableCell align="left">{u.firstName}</TableCell>
@@ -383,6 +414,7 @@ export default function UserComponent() {
                                     <TableCell align="left">{u.username}</TableCell>
                                     <TableCell align="left">{u.email}</TableCell>
                                     <TableCell align="left">{u.department}</TableCell>
+                                    <TableCell align="left">{u.role}</TableCell>
                                     <TableCell align="center">
                                         <Button size="small">
                                             <EditIcon onClick={() => handleEditUser(u)} />
@@ -395,7 +427,7 @@ export default function UserComponent() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={8} align="center">
+                                <TableCell colSpan={9} align="center">
                                     No users found
                                 </TableCell>
                             </TableRow>

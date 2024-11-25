@@ -435,9 +435,9 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                                 {topics.length > 0 ? (
                                     topics.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((topic, index) => (
                                         <TableRow key={topic._id}>
-                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                             <TableCell>{topic.topicName}</TableCell>
-                                            <TableCell sx={{ width: "370px" }}>{topic.topicDesc}</TableCell>
+                                            <TableCell sx={{ width: "300px" }}>{topic.topicDesc}</TableCell>
                                             <TableCell>{topic.questions.length}</TableCell>
                                             <TableCell align="center">
                                                 <IconButton onClick={() => handleViewQuestionsClick(topic)}>
