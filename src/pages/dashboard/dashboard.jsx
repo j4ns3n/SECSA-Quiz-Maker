@@ -125,7 +125,7 @@ function Dashboard(props) {
   const demoWindow = window !== undefined ? window() : undefined;
 
   const filteredNavigation = NAVIGATION.filter(navItem => {
-    if (role === 'Teacher' && navItem.segment === 'users') {
+    if (role === 'all' && navItem.segment === 'users') {
       return false;
     }
     return true;

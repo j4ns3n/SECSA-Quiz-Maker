@@ -575,7 +575,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                         size="large"
                         color="primary"
                         variant="outlined"
-                        sx={{ marginBottom: '20px' }}
+                        sx={{ marginBottom: '20px'}}
                     >Cancel</Button>
                     <Button
                         onClick={handleSubmit}

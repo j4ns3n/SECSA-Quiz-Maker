@@ -10,7 +10,7 @@ import QuizPage from './components/quizes/quizPage';
 
 function App() {
   return (
-    <div className="App">
+    <div className="App" style={{ userSelect: "none" }}>
       <BrowserRouter>
         <UserContextProvider>
           <AppRoutes />

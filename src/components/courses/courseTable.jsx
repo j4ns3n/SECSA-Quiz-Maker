@@ -278,17 +278,8 @@ const CourseTable = ({ course, onBack }) => {
                 ))}
               </Select>
             </FormControl>
-            <br />
-            <br />
           </Typography>
-
-          {selectedYear && (
-            <Typography variant="h5" gutterBottom style={{ textTransform: 'uppercase' }}>
-              SUBJECTS FOR {selectedYear}
-            </Typography>
-          )}
           <br />
-
           {selectedYear && userRole === 'admin' && (
             <Box>
               <TextField

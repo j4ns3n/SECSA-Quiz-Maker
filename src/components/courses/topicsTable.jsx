@@ -365,7 +365,14 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                     )}
                     <br />
                     <br />
-                    <FormControl style={{ width: '200px', marginBottom: '16px', marginRight: 5 }}>
+                    <Typography
+                        variant="body3"
+                        sx={{ color: 'text.secondary', fontSize: '17px'}}
+                    >
+                        Select to add to other Course
+                    </Typography>
+                    <br />
+                    <FormControl style={{ width: '210px', marginBottom: '10px', marginRight: 5 }}>
                         <InputLabel id="course-select-label">Select Course</InputLabel>
                         <Select
                             labelId="course-select-label"
@@ -382,7 +389,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                         </Select>
                     </FormControl>
 
-                    <FormControl style={{ width: '200px', marginBottom: '16px', marginRight: 5 }} disabled={!selectedCourse}>
+                    <FormControl style={{ width: '210px', marginBottom: '10px', marginRight: 5 }} disabled={!selectedCourse}>
                         <InputLabel id="year-select-label">Select Year Level</InputLabel>
                         <Select
                             labelId="year-select-label"
@@ -398,7 +405,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                             ))}
                         </Select>
                     </FormControl>
-                    <FormControl style={{ width: '200px' }} disabled={!selectedYear}>
+                    <FormControl style={{ width: '210px' }} disabled={!selectedYear}>
                         <InputLabel id="subject-select-label">Select Subjects</InputLabel>
                         <Select
                             labelId="subject-select-label"

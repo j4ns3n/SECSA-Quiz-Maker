@@ -36,6 +36,16 @@ const CourseCards = () => {
   };
 
   const handleBack = () => {
+    const fetchCourse = async () => {
+      const response = await fetch('/api/courses');
+      const json = await response.json();
+
+      if (response.ok) {
+        dispatch({ type: 'SET_COURSES', payload: json });
+      }
+    };
+
+    fetchCourse();
     setSelectedCourse(null); // Go back to the course list
   };
 
