@@ -7,15 +7,16 @@ const mongoose = require('mongoose')
 
 //create new user
 const createUser = async (req, res) => {
-    const { username, password, firstName, middleName, lastName, role, department, email } = req.body
+    const { username, password, firstName, middleName, lastName, role, department, email, course, yearLevel } = req.body
 
     const exist = await User.findOne({ username });
     if (exist) {
-        res.status(400).json({ error: "Username already exist" })
+        return res.status(400).json({ error: "Username already exists" });
     }
+
     //add doc to db
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, password: hashedPassword, firstName, middleName, lastName, role, department, email })
+    const user = await User.create({ username, password: hashedPassword, firstName, middleName, lastName, role, department, email, course, yearLevel })
     res.status(200).json(user)
 }
 
@@ -93,7 +94,7 @@ const loginUser = async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: '1d',
+            expiresIn: '8h',
         });
 
         if (!isPasswordValid) {

@@ -32,6 +32,12 @@ const userSchema = new Schema({
     department: {
         type: String,
         required: true
+    },
+    course: {
+        type: String
+    },
+    yearLevel: {
+        type: String
     }
 }, { timestamps: true })
 
