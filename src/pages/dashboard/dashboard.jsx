@@ -12,6 +12,7 @@ import LogoSecsa from '../../assets/secsalogo.png';
 import CourseCards from '../../components/courses/courseCards';
 import Exam from '../../components/exam/exam';
 import User from '../../components/users/userComponent';
+import Footer from '../../components/Footer';
 
 // Navigation config
 const NAVIGATION = [
@@ -149,6 +150,7 @@ function Dashboard(props) {
     >
       <DashboardLayout>
         <DemoPageContent pathname={pathname} onLogout={handleLogout} />
+        <Footer />
       </DashboardLayout>
     </AppProvider>
   );

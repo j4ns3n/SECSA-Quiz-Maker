@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Container, Card, CardContent, Typography, Button, Radio, RadioGroup, FormControlLabel, TextField, Box } from "@mui/material";
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 
 const QuizPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -13,7 +15,7 @@ const QuizPage = () => {
   const location = useLocation();
   const { quizData } = location.state || {};
   const { userData } = location.state || {};
-
+  const navigate = useNavigate();
   // Flatten questions from the quizData
   const quizQuestions = quizData?.topics?.reduce((acc, topic) => {
     const { easy, intermediate, difficult } = topic.selectedQuestions;
@@ -135,6 +137,8 @@ const QuizPage = () => {
     setQuizResults([]);
     setQuizCompleted(false);
     setAnsweredQuestions(new Set()); // Reset answered questions on restart
+
+    navigate('/exam');
   };
 
   // Get the answer for a particular question

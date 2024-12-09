@@ -1,55 +1,28 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Button, TextField, Container, Box, Typography } from '@mui/material';
+import { AppBar, Toolbar, Button, Container, Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import LogoSecsa from '../assets/secsalogo.png';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const QuizApp = () => {
-    const [quizCode, setQuizCode] = useState('');
-    const [error, setError] = useState('');
-    const [userName, setUserName] = useState('');
-    const [userCourse, setUserCourse] = useState('');
-    const [quizData, setQuizData] = useState(null); // Store quiz data once fetched
     const navigate = useNavigate(); // Initialize navigate
+    const [hover, setHover] = useState(false);
+
 
     const handleJoinClick = async () => {
-        try {
-            const response = await fetch(`/api/exams/${quizCode}`);
-
-            if (!response.ok) {
-                throw new Error('Quiz not found, please check the code.');
-            }
-            const data = await response.json();
-
-            if (data) {
-                setQuizData(data); // Store the quiz data in state
-                setError('');
-            } else {
-                setError('Quiz not found, please check the code.');
-            }
-        } catch (err) {
-            console.error(err);
-            setError('Quiz not found, please check the code.');
-        }
+        navigate('/exam/code', { replace: true });
     };
 
-    const handleSubmit = () => {
-        if (userName && userCourse && quizData) {
-            const userData = {
-                name: userName,
-                course: userCourse,
-            };
-
-            // Pass both quiz data and user data as state to the quiz page
-            navigate(`/exam/${quizData.title}`, { state: { quizData, userData } });
-        } else {
-            setError('Please enter both your name and course.');
-        }
-    };
+    const handleLogout = React.useCallback(() => {
+        sessionStorage.clear();
+        localStorage.clear();
+        navigate('/login', { replace: true });
+    }, [navigate]);
 
     return (
         <div style={{
             height: '100vh',
-            background: 'linear-gradient(to bottom, #FF9201, #ffD181)',
+            background: 'linear-gradient(to right, #FCC31A, #FF9201, #DE791E)',
             color: '#fff'
         }}>
             <AppBar position="static" style={{ backgroundColor: '#FF9201' }}>
@@ -57,6 +30,20 @@ const QuizApp = () => {
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <img src={LogoSecsa} alt="logo" style={{ height: '40px' }} />
                     </Typography>
+
+                    <Button
+                        style={{
+                            backgroundColor: hover ? '#fff' : '#FF9201',
+                            color: hover ? '#FF9201' : '#fff',
+                            border: '1px solid #FF9201',
+                            transition: 'background-color 0.3s, color 0.3s',
+                        }}
+                        onMouseEnter={() => setHover(true)}
+                        onMouseLeave={() => setHover(false)}
+                        onClick={handleLogout}
+                    >
+                        Logout <LogoutIcon sx={{ paddingLeft: '3px' }} />
+                    </Button>
                 </Toolbar>
             </AppBar>
 
@@ -66,78 +53,21 @@ const QuizApp = () => {
                     SECSA Quiz Maker
                 </Typography>
 
-                {/* Render the quiz code input only if quiz data is not fetched */}
-                {!quizData && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '20px' }}>
-                        <TextField
-                            value={quizCode}
-                            onChange={(e) => setQuizCode(e.target.value)}
-                            variant="outlined"
-                            placeholder="Enter quiz code"
-                            InputProps={{
-                                style: {
-                                    backgroundColor: '#fff',
-                                    borderRadius: '8px',
-                                    width: '250px',
-                                },
-                            }}
-                        />
-                        <Button
-                            variant="outlined"
-                            style={{ backgroundColor: '#FF9201', color: "#fff" }}
-                            onClick={handleJoinClick}
-                        >
-                            Join
-                        </Button>
-                    </Box>
-                )}
-
-                {/* Error Message */}
-                {error && <Typography color="white">{error}</Typography>}
-
-                {/* User Input Form */}
-                {quizData && (
-                    <div style={{ marginTop: '20px' }}>
-                        <Typography variant="h5" style={{ marginBottom: '20px' }}>
-                            Please enter your details
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                            <TextField
-                                value={userName}
-                                onChange={(e) => setUserName(e.target.value)}
-                                variant="outlined"
-                                placeholder="Your Name"
-                                InputProps={{
-                                    style: {
-                                        backgroundColor: '#fff',
-                                        borderRadius: '8px',
-                                        width: '250px',
-                                    },
-                                }}
-                            />
-                            <TextField
-                                value={userCourse}
-                                onChange={(e) => setUserCourse(e.target.value)}
-                                variant="outlined"
-                                placeholder="Your Course"
-                                InputProps={{
-                                    style: {
-                                        backgroundColor: '#fff',
-                                        borderRadius: '8px',
-                                        width: '250px',
-                                    },
-                                }}
-                            />
-                            <Button
-                                variant="outlined"
-                                style={{ backgroundColor: '#FF9201', color: "#fff", marginTop: '20px' }}
-                                onClick={handleSubmit}
-                            >
-                                Start
-                            </Button>
-                        </Box>
-                    </div>
-                )}
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '20px' }}>
+                    <Button
+                        variant="outlined"
+                        style={{ backgroundColor: '#FF9201', color: "#fff" }}
+                        onClick={handleJoinClick}
+                    >
+                        Join Exam
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        style={{ backgroundColor: '#FF9201', color: "#fff" }}
+                    >
+                        Recent Exams
+                    </Button>
+                </Box>
             </Container>
         </div>
     );

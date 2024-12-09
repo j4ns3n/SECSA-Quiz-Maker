@@ -35,6 +35,8 @@ function Login({ onLogin }) {
         sessionStorage.setItem('middleName', userData.middleName);
         sessionStorage.setItem('lastName', userData.lastName);
         sessionStorage.setItem('email', userData.email);
+        sessionStorage.setItem('course', userData.course);
+        sessionStorage.setItem('yearLevel', userData.yearLevel);
 
         onLogin(token);
 
@@ -44,10 +46,6 @@ function Login({ onLogin }) {
       setError('An error occurred during login. Please try again.');
     }
   };
-
-  const handleEnterCode = async () => {
-    navigate('/exam')
-  }
 
   const styles = {
     container: {
@@ -165,19 +163,11 @@ function Login({ onLogin }) {
             <div style={{ display: "inline" }}>
               <Button
                 type="submit"
-                style={{ backgroundColor: '#e05707', color: "#fff", width: "40%", marginRight: "20px" }}
+                style={{ backgroundColor: '#e05707', color: "#fff", width: "84%", marginRight: "20px" }}
                 onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
                 onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
               >
                 Sign In
-              </Button>
-              <Button
-                style={{ backgroundColor: '#e05707', color: "#fff", width: "40%" }}
-                onMouseOver={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
-                onMouseOut={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
-                onClick={handleEnterCode}
-              >
-                Enter Code
               </Button>
             </div>
           </form>

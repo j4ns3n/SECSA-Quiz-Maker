@@ -6,11 +6,13 @@ import { CourseContextProvider } from './context/CourseContext/CourseContext';
 import Dashboard from './pages/dashboard/dashboard';
 import { jwtDecode } from 'jwt-decode';
 import QuizApp from './pages/quizapp';
-import QuizPage from './components/quizes/quizPage';
+import QuizPage from './components/quizes/quiz/quizPage';
+import QuizCode from './components/quizes/quiz/quizCode';
 
 function App() {
   return (
-    <div className="App" style={{ userSelect: "none" }}>
+    // style={{ userSelect: "none" }}
+    <div className="App" >
       <BrowserRouter>
         <UserContextProvider>
           <AppRoutes />
@@ -23,6 +25,7 @@ function App() {
 // Separate component to handle routing and authentication checks
 function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState(null);  // State to store the user role
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,7 +40,6 @@ function AppRoutes() {
 
       try {
         const decodedToken = jwtDecode(token);
-
         const currentTime = Date.now() / 1000;
 
         if (decodedToken.exp < currentTime) {
@@ -46,6 +48,7 @@ function AppRoutes() {
           navigate('/login');
         } else {
           setIsAuthenticated(true);
+          setRole(decodedToken.role);  // Set role from the token
         }
       } catch (error) {
         setIsAuthenticated(false);
@@ -57,14 +60,41 @@ function AppRoutes() {
     checkAuth();
   }, [location, navigate]);
 
-  const handleLogin = () => {
-    localStorage.setItem('authToken', localStorage.getItem('authToken')); // Set token on login
-    setIsAuthenticated(true);
+  const handleLogin = (role) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    try {
+      const decodedToken = jwtDecode(token);
+      const userRole = decodedToken.role;
+
+      sessionStorage.setItem('userRole', userRole);  // Store the role in sessionStorage
+      setIsAuthenticated(true);
+      setRole(userRole);  // Set the role state
+
+      // Redirect based on the role after login
+      if (userRole === 'Student') {
+        navigate('/exam');  // Redirect to QuizApp for students
+      } else {
+        navigate('/');  // Redirect to CourseApp (Dashboard) for teachers/admins
+      }
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      setIsAuthenticated(false);
+      localStorage.removeItem('authToken');
+      navigate('/login');
+    }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken'); // Clear token on logout
-    setIsAuthenticated(false); // Update state
+    // Clear the authentication state and role
+    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('userRole');
+    setIsAuthenticated(false);
+    setRole(null);
+
+    // Redirect to login page after logout
+    navigate('/login');
   };
 
   // Disable right-click and certain keyboard shortcuts
@@ -95,19 +125,43 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Redirect to courses if authenticated */}
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />}
-      />
-      <Route path="/exam" element={<QuizApp />} />
-      <Route path="/exam/:quizTitle" element={<QuizPage />} />
-      {/* Protected routes */}
-      <Route
-        path="/*"
-        element={isAuthenticated ? <CourseApp onLogout={handleLogout} /> : <Navigate to="/login" replace />}
-      />
-    </Routes>
+  {/* If the user is authenticated, redirect based on the role */}
+  <Route
+    path="/login"
+    element={isAuthenticated ? (
+      <Navigate to={role === 'Student' ? '/exam' : '/'} replace />
+    ) : (
+      <Login onLogin={handleLogin} />
+    )}
+  />
+
+  {/* Routes for students (quiz page) */}
+  <Route
+    path="/exam"
+    element={isAuthenticated && role === 'Student' ? <QuizApp /> : <Navigate to="/login" replace />}
+  />
+  <Route
+    path="/exam/code"
+    element={isAuthenticated && role === 'Student' ? <QuizCode /> : <Navigate to="/login" replace />}
+  />
+  <Route
+    path="/exam/:quizTitle"
+    element={isAuthenticated && role === 'Student' ? <QuizPage /> : <Navigate to="/login" replace />}
+  />
+  {/* Protected routes based on authentication */}
+  <Route
+    path="/*"
+    element={isAuthenticated ? (
+      role === 'Student' ? (
+        <Navigate to="/exam" replace />
+      ) : (
+        <CourseApp onLogout={handleLogout} />
+      )
+    ) : (
+      <Navigate to="/login" replace />
+    )}
+  />
+</Routes>
   );
 }
 
