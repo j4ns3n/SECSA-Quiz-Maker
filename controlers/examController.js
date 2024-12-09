@@ -26,11 +26,11 @@ const createExam = async (req, res) => {
 
         await newExam.save();
         res.status(201).json(newExam);
+
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
-
 
 // Get all exams
 const getExams = async (req, res) => {
@@ -95,10 +95,16 @@ const addParticipantsToExam = async (req, res) => {
 
         res.status(200).json(exam)
         console.log('Participant added successfully');
+        addToStudentRecord();
     } catch (error) {
         console.error("Error adding participant:", error);
     }
 };
+
+//NEXT TO DO 
+const addToStudentRecord = async (req, res) => {
+    console.log('add to students record');
+}
 
 module.exports = {
     createExam,

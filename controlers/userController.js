@@ -90,10 +90,12 @@ const loginUser = async (req, res) => {
             firstName: user.firstName,
             middleName: user.middleName,
             lastName: user.lastName,
-            email: user.email
+            email: user.email,
+            course: user.course,
+            yearLevel: user.yearLevel,
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
             expiresIn: '8h',
         });
 
