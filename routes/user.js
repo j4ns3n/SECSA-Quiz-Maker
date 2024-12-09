@@ -6,15 +6,19 @@ const {
     loginUser,
     getUsers,
     deleteUser,
-    updateUser
+    updateUser,
+    addExamToStudent,
+    getUser
 } = require('../controlers/userController')
 
 const router = express.Router();
 
 
 router.get('/', getUsers);
+router.get('/:id', getUser);
 router.delete('/:id', deleteUser);
 router.patch('/:id', updateUser);
+router.patch('/exam/:id', addExamToStudent)
 
 // Register a new user
 router.post('/register', createUser);

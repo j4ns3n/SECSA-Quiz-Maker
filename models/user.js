@@ -2,9 +2,21 @@ const mongoose = require('mongoose')
 
 const Schema = mongoose.Schema
 
-// const examSchem = new Schema({
-
-// });
+const examSchem = new Schema({
+    examId: { type: String, required: true },
+    examTitle: { type: String, required: true },
+    course: { type: String, required: true },
+    code: { type: String, required: true },
+    score: { type: String, required: true },
+    questions: [
+      {
+        correctAnswer: { type: String, required: true },
+        isCorrect: { type: Boolean, default: false },
+        question: { type: String, required: true },
+        userAnswer: { type: String, required: true }
+      }
+    ]
+}, { timestamps: true });
 
 const userSchema = new Schema({
     username: {
@@ -43,7 +55,7 @@ const userSchema = new Schema({
     yearLevel: {
         type: String
     },
-    // examx: [examSchem]
+    exams: [examSchem]
 }, { timestamps: true })
 
 module.exports = mongoose.model('User', userSchema)

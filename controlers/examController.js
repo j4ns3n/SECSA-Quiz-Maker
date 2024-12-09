@@ -94,17 +94,11 @@ const addParticipantsToExam = async (req, res) => {
         await exam.save(participantData);
 
         res.status(200).json(exam)
-        console.log('Participant added successfully');
-        addToStudentRecord();
     } catch (error) {
         console.error("Error adding participant:", error);
     }
 };
 
-//NEXT TO DO 
-const addToStudentRecord = async (req, res) => {
-    console.log('add to students record');
-}
 
 module.exports = {
     createExam,

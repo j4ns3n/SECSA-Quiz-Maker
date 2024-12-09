@@ -32,6 +32,24 @@ const getUsers = async (req, res) => {
     }
 };
 
+const getUser = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ user: user });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
 
 const deleteUser = async (req, res) => {
     const { id } = req.params;
@@ -71,8 +89,32 @@ const updateUser = async (req, res) => {
     res.status(200).json(user);
 };
 
+const addExamToStudent = async (req, res) => {
+    const { id } = req.params;
+    const { examData } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: 'Cant find User' });
+    }
 
+    try {
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ error: "Cant find User" });
+        }
+
+        user.exams.push(examData);
+
+        await user.save();
+
+        return res.status(200).json({ message: 'Exam data added successfully', user });
+
+    } catch (error) {
+        console.error('Error saving user:', error);
+        return res.status(500).json({ error: 'Failed to add exam data' });
+    }
+};
 
 const loginUser = async (req, res) => {
     const { username, password } = req.body;
@@ -116,5 +158,7 @@ module.exports = {
     loginUser,
     getUsers,
     deleteUser,
-    updateUser
+    updateUser,
+    addExamToStudent,
+    getUser
 }
