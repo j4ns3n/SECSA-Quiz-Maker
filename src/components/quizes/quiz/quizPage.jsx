@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Card, CardContent, Typography, Button, Radio, RadioGroup, FormControlLabel, TextField, Box } from "@mui/material";
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 
 const QuizPage = () => {
@@ -15,6 +16,7 @@ const QuizPage = () => {
   const location = useLocation();
   const { quizData } = location.state || {};
   const { userData } = location.state || {};
+  const [decodedToken, setDecodedToken] = useState('');
   const navigate = useNavigate();
   // Flatten questions from the quizData
   const quizQuestions = quizData?.topics?.reduce((acc, topic) => {
@@ -32,7 +34,8 @@ const QuizPage = () => {
     setUserAnswers({});
     setQuizResults([]);
     setQuizCompleted(false);
-    setAnsweredQuestions(new Set()); // Reset answered questions when quizData changes
+    setAnsweredQuestions(new Set());
+    setDecodedToken(jwtDecode(localStorage.getItem("authToken")));
   }, [quizData]);
 
   // Handler for multiple choice and true/false answers
@@ -167,29 +170,66 @@ const QuizPage = () => {
         course: userData.course,
         score: score
       }
+      console.log(data);
       examToDb(data)
     }
-  }, [isFinished, userData.course, userData.name, score, quizData._id]);
+  }, [isFinished, userData.course, userData.name, score, quizData._id, answeredQuestions]);
 
   const examToDb = async (data) => {
     console.log(data);
+    const examData = {
+      examId: data.examId,
+      examTitle: quizData.title,
+      course: quizData.course,
+      code: quizData.examCode,
+      score: data.score,
+      questions: quizResults.map(result => ({
+        question: result.question,
+        userAnswer: result.userAnswer,
+        correctAnswer: result.correctAnswer,
+        isCorrect: result.userAnswer === result.correctAnswer
+      }))
+    };
+
     try {
-      const response = await fetch(`/api/exams/${data.examId}`, {
+      const response = await fetch(`/api/user/exam/${decodedToken.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ examData }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to submit exam');
       }
 
-      const examData = await response.json();
-      console.log(examData);
+      const responseData = await response.json();
+      console.log(responseData);
+      if (responseData) {
+        console.log(data);
+        try {
+          const response = await fetch(`/api/exams/${data.examId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to submit exam');
+          }
+
+          const examData = await response.json();
+          console.log(examData);
+        } catch (error) {
+          console.error('Exam submitted:', error);
+        }
+      }
+      console.log(responseData);
     } catch (error) {
-      console.error('Exam submitted:', error);
+      console.error('Exam submission error:', error);
     }
   }
 
@@ -282,24 +322,8 @@ const QuizPage = () => {
           ) : (
             <Box textAlign="center">
               <Typography variant="h4">Exam Finished!</Typography>
-              <Typography variant="h5" sx={{ mt: 2 }}>{`Your score: ${score} out of ${quizQuestions.length}`}</Typography>
-
-              <Box sx={{ mt: 2, maxHeight: 300, overflowY: 'auto' }}>
-                <Typography variant="h6">Review Your Answers:</Typography>
-                {quizResults.map((result, index) => (
-                  <Box key={index} sx={{ mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                    <Typography><strong>Question {index + 1}: </strong>{result.question}</Typography>
-                    <Typography><strong>Your Answer: </strong>{result.userAnswer}</Typography>
-                    <Typography><strong>Correct Answer: </strong>{result.correctAnswer}</Typography>
-                    <Typography sx={{ color: result.isCorrect ? 'green' : 'red' }}>
-                      {result.isCorrect ? 'Correct' : 'Incorrect'}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-              <br />
-              <br />
-              <Button variant="contained" color="primary" onClick={restartQuiz}>
+              <Typography variant="h5" sx={{ mt: 10 }}><strong>{`Your score: ${score} / ${quizQuestions.length}`}</strong></Typography>
+              <Button variant="contained" color="primary" onClick={restartQuiz} sx={{ mt: 10 }}>
                 Restart Quiz
               </Button>
             </Box>

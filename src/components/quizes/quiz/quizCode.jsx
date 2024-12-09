@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Button, TextField, Container, Box, Typography } from '@mui/material';
+import { AppBar, Toolbar, Button, TextField, Container, Box, Typography, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import LogoSecsa from '../../../assets/secsalogo.png';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const QuizCode = () => {
     const [quizCode, setQuizCode] = useState('');
@@ -66,6 +67,10 @@ const QuizCode = () => {
         navigate('/login', { replace: true });
     }, [navigate]);
 
+    const handleBack = async () => {
+        navigate('/exam');
+    }
+
     return (
         <div style={{
             height: '100vh',
@@ -101,6 +106,7 @@ const QuizCode = () => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '20px' }}>
+                    <IconButton onClick={handleBack}><ArrowBackIcon sx={{color: '#FFFF'}} /></IconButton>
                     <TextField
                         value={quizCode}
                         onChange={(e) => setQuizCode(e.target.value)}

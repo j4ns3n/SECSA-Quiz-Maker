@@ -8,6 +8,7 @@ import { jwtDecode } from 'jwt-decode';
 import QuizApp from './pages/quizapp';
 import QuizPage from './components/quizes/quiz/quizPage';
 import QuizCode from './components/quizes/quiz/quizCode';
+import RecentExams from './components/quizes/exams/recentExams';
 
 function App() {
   return (
@@ -143,6 +144,10 @@ function AppRoutes() {
   <Route
     path="/exam/code"
     element={isAuthenticated && role === 'Student' ? <QuizCode /> : <Navigate to="/login" replace />}
+  />
+  <Route
+    path="/exam/recent-exams"
+    element={isAuthenticated && role === 'Student' ? <RecentExams /> : <Navigate to="/login" replace />}
   />
   <Route
     path="/exam/:quizTitle"

@@ -13,6 +13,10 @@ const QuizApp = () => {
         navigate('/exam/code', { replace: true });
     };
 
+    const handleRecentExams = async () => {
+        navigate('/exam/recent-exams', { replace: true });
+    };
+
     const handleLogout = React.useCallback(() => {
         sessionStorage.clear();
         localStorage.clear();
@@ -64,6 +68,7 @@ const QuizApp = () => {
                     <Button
                         variant="outlined"
                         style={{ backgroundColor: '#FF9201', color: "#fff" }}
+                        onClick={handleRecentExams}
                     >
                         Recent Exams
                     </Button>
