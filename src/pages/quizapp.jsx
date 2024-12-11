@@ -60,14 +60,14 @@ const QuizApp = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '20px' }}>
                     <Button
                         variant="outlined"
-                        style={{ backgroundColor: '#FF9201', color: "#fff" }}
+                        style={{ backgroundColor: '#fff', color: "#000" }}
                         onClick={handleJoinClick}
                     >
                         Join Exam
                     </Button>
                     <Button
                         variant="outlined"
-                        style={{ backgroundColor: '#FF9201', color: "#fff" }}
+                        style={{ backgroundColor: '#fff', color: "#000" }}
                         onClick={handleRecentExams}
                     >
                         Recent Exams

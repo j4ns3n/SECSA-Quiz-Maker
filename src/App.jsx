@@ -9,6 +9,7 @@ import QuizApp from './pages/quizapp';
 import QuizPage from './components/quizes/quiz/quizPage';
 import QuizCode from './components/quizes/quiz/quizCode';
 import RecentExams from './components/quizes/exams/recentExams';
+import ReviewPage from './components/quizes/exams/reviewPage';
 
 function App() {
   return (
@@ -23,10 +24,9 @@ function App() {
   );
 }
 
-// Separate component to handle routing and authentication checks
 function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState(null);  // State to store the user role
+  const [role, setRole] = useState(null); 
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -69,15 +69,14 @@ function AppRoutes() {
       const decodedToken = jwtDecode(token);
       const userRole = decodedToken.role;
 
-      sessionStorage.setItem('userRole', userRole);  // Store the role in sessionStorage
+      sessionStorage.setItem('userRole', userRole); 
       setIsAuthenticated(true);
-      setRole(userRole);  // Set the role state
+      setRole(userRole);  
 
-      // Redirect based on the role after login
       if (userRole === 'Student') {
-        navigate('/exam');  // Redirect to QuizApp for students
+        navigate('/exam'); 
       } else {
-        navigate('/');  // Redirect to CourseApp (Dashboard) for teachers/admins
+        navigate('/'); 
       }
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -88,13 +87,10 @@ function AppRoutes() {
   };
 
   const handleLogout = () => {
-    // Clear the authentication state and role
     localStorage.removeItem('authToken');
     sessionStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setRole(null);
-
-    // Redirect to login page after logout
     navigate('/login');
   };
 
@@ -148,6 +144,10 @@ function AppRoutes() {
   <Route
     path="/exam/recent-exams"
     element={isAuthenticated && role === 'Student' ? <RecentExams /> : <Navigate to="/login" replace />}
+  />
+  <Route
+    path="/exam/recent-exams/review"
+    element={isAuthenticated && role === 'Student' ? <ReviewPage /> : <Navigate to="/login" replace />}
   />
   <Route
     path="/exam/:quizTitle"

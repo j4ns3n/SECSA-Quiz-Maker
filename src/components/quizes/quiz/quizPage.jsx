@@ -110,6 +110,7 @@ const QuizPage = () => {
           userAnswer: userAnswer ? userAnswer.selectedOption || userAnswer.identificationAnswer || userAnswer.numericAnswer || userAnswer.essayAnswer : "No Answer",
           correctAnswer: current.answer,
           isCorrect: isAnswerCorrect(current, userAnswer),
+          difficulty: current.difficulty
         }
       ]);
 
@@ -170,13 +171,12 @@ const QuizPage = () => {
         course: userData.course,
         score: score
       }
-      console.log(data);
       examToDb(data)
     }
   }, [isFinished, userData.course, userData.name, score, quizData._id, answeredQuestions]);
 
   const examToDb = async (data) => {
-    console.log(data);
+    // console.log(data);
     const examData = {
       examId: data.examId,
       examTitle: quizData.title,
@@ -187,9 +187,12 @@ const QuizPage = () => {
         question: result.question,
         userAnswer: result.userAnswer,
         correctAnswer: result.correctAnswer,
-        isCorrect: result.userAnswer === result.correctAnswer
+        isCorrect: result.userAnswer === result.correctAnswer,
+        difficulty: result.difficulty,
       }))
     };
+
+    console.log(examData);
 
     try {
       const response = await fetch(`/api/user/exam/${decodedToken.id}`, {
@@ -234,117 +237,134 @@ const QuizPage = () => {
   }
 
   return (
-    <Container
-      maxWidth="md"
-      sx={{
+    <div
+      style={{
         height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+        background: 'linear-gradient(to right, #FCC31A, #FF9201, #DE791E)',
+        color: '#fff'
       }}
     >
-      <Card
+      <Container
+        maxWidth="md"
         sx={{
-          width: 600,
-          minHeight: 400,
-          padding: 5,
+          height: '100vh',
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          borderRadius: 3
+          justifyContent: 'center',
+          alignItems: 'center'
         }}
       >
-        <CardContent sx={{ flex: '1 1 auto', overflow: 'auto' }}>
-          {!isFinished ? (
-            <>
-              <div className="container" style={{ borderBottom: "1px #8d8d8d solid", paddingBottom: "23px" }}>
-                <Typography variant="h5">
-                  <strong>{quizData.title}</strong>
+        <Card
+          sx={{
+            width: 600,
+            minHeight: 400,
+            padding: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            borderRadius: 3
+          }}
+        >
+          <CardContent sx={{ flex: '1 1 auto', overflow: 'auto' }}>
+            {!isFinished ? (
+              <>
+                <div className="container" style={{ borderBottom: "1px #8d8d8d solid", paddingBottom: "23px" }}>
+                  <Typography variant="h5">
+                    <strong>{quizData.title}</strong>
+                  </Typography>
+                  <br />
+                  <Typography variant="h5">
+                    {quizData.course}
+                  </Typography>
+                </div>
+
+                <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
+                  <strong>{currentQuestion + 1}. </strong>{quizQuestions[currentQuestion].questionText}
                 </Typography>
-                <br />
-                <Typography variant="h5">
-                  {quizData.course}
-                </Typography>
-              </div>
 
-              <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
-                <strong>{currentQuestion + 1}. </strong>{quizQuestions[currentQuestion].questionText}
-              </Typography>
+                {quizQuestions[currentQuestion].type === 'Multiple Choice' && (
+                  <RadioGroup value={getAnswerForQuestion(currentQuestion, 'Multiple Choice')} onChange={handleOptionChange}>
+                    {quizQuestions[currentQuestion].choices.map((option, index) => (
+                      <FormControlLabel key={index} value={option} control={<Radio />} label={option} />
+                    ))}
+                  </RadioGroup>
+                )}
 
-              {quizQuestions[currentQuestion].type === 'Multiple Choice' && (
-                <RadioGroup value={getAnswerForQuestion(currentQuestion, 'Multiple Choice')} onChange={handleOptionChange}>
-                  {quizQuestions[currentQuestion].choices.map((option, index) => (
-                    <FormControlLabel key={index} value={option} control={<Radio />} label={option} />
-                  ))}
-                </RadioGroup>
-              )}
+                {quizQuestions[currentQuestion].type === 'True or False' && (
+                  <RadioGroup value={getAnswerForQuestion(currentQuestion, 'True or False')} onChange={handleOptionChange}>
+                    <FormControlLabel value="true" control={<Radio />} label="True" />
+                    <FormControlLabel value="false" control={<Radio />} label="False" />
+                  </RadioGroup>
+                )}
 
-              {quizQuestions[currentQuestion].type === 'True or False' && (
-                <RadioGroup value={getAnswerForQuestion(currentQuestion, 'True or False')} onChange={handleOptionChange}>
-                  <FormControlLabel value="true" control={<Radio />} label="True" />
-                  <FormControlLabel value="false" control={<Radio />} label="False" />
-                </RadioGroup>
-              )}
+                {quizQuestions[currentQuestion].type === 'Identification' && (
+                  <TextField
+                    label="Your Answer"
+                    variant="outlined"
+                    fullWidth
+                    value={getAnswerForQuestion(currentQuestion, 'Identification')}
+                    onChange={handleIdentificationChange}
+                  />
+                )}
 
-              {quizQuestions[currentQuestion].type === 'Identification' && (
-                <TextField
-                  label="Your Answer"
-                  variant="outlined"
-                  fullWidth
-                  value={getAnswerForQuestion(currentQuestion, 'Identification')}
-                  onChange={handleIdentificationChange}
-                />
-              )}
+                {quizQuestions[currentQuestion].type === 'Worded Problem' && (
+                  <TextField
+                    label="Your Answer (Numeric)"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    value={getAnswerForQuestion(currentQuestion, 'Worded Problem')}
+                    onChange={handleNumericChange}
+                  />
+                )}
 
-              {quizQuestions[currentQuestion].type === 'Worded Problem' && (
-                <TextField
-                  label="Your Answer (Numeric)"
-                  variant="outlined"
-                  fullWidth
-                  type="number"
-                  value={getAnswerForQuestion(currentQuestion, 'Worded Problem')}
-                  onChange={handleNumericChange}
-                />
-              )}
+                {quizQuestions[currentQuestion].type === 'Essay' && (
+                  <TextField
+                    label="Your Answer (Essay)"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={getAnswerForQuestion(currentQuestion, 'Essay')}
+                    onChange={handleEssayChange}
+                  />
+                )}
+              </>
+            ) : (
+              <Box textAlign="center">
+                <Typography variant="h4">Exam Finished!</Typography>
+                {score / quizQuestions.length >= 0.6 ? (
+                  <Typography variant="h5" sx={{ mt: 10, color: 'green' }}>
+                    <strong>Passed! 😄</strong>
+                  </Typography>
+                ) : (
+                  <Typography variant="h5" sx={{ mt: 10, color: 'red' }}>
+                    <strong>Failed! 🙁</strong>
+                  </Typography>
+                )}
+                <Typography variant="h5" sx={{ mt: 10 }}><strong>{`Your score: ${score} / ${quizQuestions.length}`}</strong></Typography>
+                <Button variant="contained" color="primary" onClick={restartQuiz} sx={{ mt: 10 }}>
+                  Restart Quiz
+                </Button>
+              </Box>
+            )}
+          </CardContent>
 
-              {quizQuestions[currentQuestion].type === 'Essay' && (
-                <TextField
-                  label="Your Answer (Essay)"
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  rows={4}
-                  value={getAnswerForQuestion(currentQuestion, 'Essay')}
-                  onChange={handleEssayChange}
-                />
-              )}
-            </>
-          ) : (
-            <Box textAlign="center">
-              <Typography variant="h4">Exam Finished!</Typography>
-              <Typography variant="h5" sx={{ mt: 10 }}><strong>{`Your score: ${score} / ${quizQuestions.length}`}</strong></Typography>
-              <Button variant="contained" color="primary" onClick={restartQuiz} sx={{ mt: 10 }}>
-                Restart Quiz
-              </Button>
-            </Box>
-          )}
-        </CardContent>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingTop: 2 }}>
-          <Button variant="contained" sx={{ backgroundColor: "#e05707" }} onClick={handleBackQuestion}>
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            sx={{ backgroundColor: "#e05707" }}
-            onClick={handleNextQuestion}
-            disabled={quizCompleted}
-          >
-            {currentQuestion === quizQuestions.length - 1 ? 'Finish' : 'Next'}
-          </Button>
-        </Box>
-      </Card>
-    </Container>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', paddingTop: 2 }}>
+            <Button variant="contained" sx={{ backgroundColor: "#e05707" }} onClick={handleBackQuestion}>
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: "#e05707" }}
+              onClick={handleNextQuestion}
+              disabled={quizCompleted}
+            >
+              {currentQuestion === quizQuestions.length - 1 ? 'Finish' : 'Next'}
+            </Button>
+          </Box>
+        </Card>
+      </Container>
+    </div>
   );
 };
 

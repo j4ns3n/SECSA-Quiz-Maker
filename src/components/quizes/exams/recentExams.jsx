@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Button, Typography, Table, TableHead, TableBody, TableRow, TableCell, Paper, Box } from '@mui/material';
+import { AppBar, Toolbar, Button, Typography, Table, TableHead, TableBody, TableRow, TableCell, Paper, Box, TablePagination, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoSecsa from '../../../assets/secsalogo.png';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { jwtDecode } from 'jwt-decode';
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { red } from '@mui/material/colors';
 
 const RecentExams = () => {
     const [hover, setHover] = useState(false);
     const navigate = useNavigate();
     const [exams, setExams] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -35,12 +42,13 @@ const RecentExams = () => {
 
                 const responseData = await response.json();
                 setExams(responseData.user.exams);
+                console.log(responseData)
             } catch (error) {
                 console.error('ERROR:', error);
             }
         };
 
-        fetchUserData(); // Call the async function
+        fetchUserData();
     }, []);
 
     const handleLogout = React.useCallback(() => {
@@ -52,6 +60,25 @@ const RecentExams = () => {
     // const handleBack = async () => {
     //     navigate('/exam');
     // }
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 15));
+        setPage(0);
+    };
+
+    const examsToDisplay = exams.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    const handleBack = async () => {
+        navigate('/exam');
+    }
+
+    const handleReviewPage = async (exam) => {
+        navigate('/exam/recent-exams/review', { state: { exam } });
+    }
 
     return (
         <div style={{
@@ -89,35 +116,60 @@ const RecentExams = () => {
                 overflow: 'hidden',
                 justifyContent: 'center'
             }}>
-                <Typography variant="h5">{'Recent Exam(s)'}</Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <IconButton sx={{ padding: 0 }}><ArrowBackIcon onClick={handleBack} sx={{ color: '#FFFF' }} /></IconButton>
+                    <Typography variant="h5">{'Recent Exam(s)'}</Typography>
+                </Box>
                 <br />
                 <Paper>
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Exam Title</TableCell>
-                                <TableCell>Exam Code</TableCell>
-                                <TableCell>Course</TableCell>
-                                <TableCell>Exam Date</TableCell>
-                                <TableCell>Score</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Exam Title</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Exam Code</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Course</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Exam Date</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Score</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Action</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {exams.length > 0 ? exams.map((exam, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{exam.examTitle}</TableCell>
-                                    <TableCell>{exam.code}</TableCell>
-                                    <TableCell>{exam.course}</TableCell>
-                                    <TableCell>{formatDate(exam.createdAt)}</TableCell> {/* Adjust field names as per your response */}
-                                    <TableCell>{exam.score}</TableCell> {/* Adjust field names as per your response */}
-                                </TableRow>
-                            )) : (
-                                <TableRow>
-                                    <TableCell colSpan={4}>No exams available</TableCell>
+                            {examsToDisplay.length > 0 ? (
+                                examsToDisplay.map((exam, index) => (
+                                    <TableRow key={exam._id}>
+                                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                                        <TableCell>{exam.examTitle}</TableCell>
+                                        <TableCell>{exam.code}</TableCell>
+                                        <TableCell sx={{ width: '250px' }}>{exam.course}</TableCell>
+                                        <TableCell sx={{ width: '250px' }}>{formatDate(exam.createdAt)}</TableCell>
+                                        <TableCell>{exam.score}</TableCell>
+                                        <TableCell align="center">
+                                            <IconButton onClick={() => handleReviewPage(exam)}>
+                                                <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
+                                            </IconButton>
+                                            <IconButton>
+                                                <BarChartIcon sx={{ color: red[900] }} />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow >
+                                    <TableCell colSpan={4}>No exam(s) available</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        count={exams.length}  // Total number of exams
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
                 </Paper>
             </Box>
         </div>
