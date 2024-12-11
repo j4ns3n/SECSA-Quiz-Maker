@@ -13,7 +13,8 @@ const examSchem = new Schema({
         correctAnswer: { type: String, required: true },
         isCorrect: { type: Boolean, default: false },
         question: { type: String, required: true },
-        userAnswer: { type: String, required: true }
+        userAnswer: { type: String, required: true },
+        difficulty: { type: String, required: true }
       }
     ]
 }, { timestamps: true });
