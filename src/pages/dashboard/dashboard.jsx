@@ -64,7 +64,7 @@ function DemoPageContent({ pathname, onLogout }) {
       case '/exams':
         return <Exam />;
       case '/users':
-        return <User Component />;
+        return <User />;
       default:
         return <div>Page Not Found</div>;
     }
@@ -100,7 +100,7 @@ function Dashboard(props) {
     sessionStorage.clear();
     localStorage.clear();
     navigate('/login', { replace: true });
-  }, [navigate]); 
+  }, [navigate]);
 
   const authentication = React.useMemo(() => {
     return {
@@ -109,7 +109,7 @@ function Dashboard(props) {
       },
       signOut: () => {
         setSession(null);
-        handleLogout(); 
+        handleLogout();
       },
     };
   }, [handleLogout]);
@@ -139,7 +139,7 @@ function Dashboard(props) {
         onClick: () => setPathname(`/${navItem.segment}`),
       }))}
       branding={{
-        logo: <img src={ LogoSecsa} alt="SECSA logo" />,
+        logo: <img src={LogoSecsa} alt="SECSA logo" />,
         title: 'SECSA Quiz Maker',
       }}
       router={router}
@@ -149,8 +149,8 @@ function Dashboard(props) {
       session={session}
     >
       <DashboardLayout>
-        <DemoPageContent pathname={pathname} onLogout={handleLogout} />
-        <Footer />
+        <DemoPageContent sx={{paddingBottom: '64px'}} pathname={pathname} onLogout={handleLogout} />
+        {/* <Footer /> */}
       </DashboardLayout>
     </AppProvider>
   );

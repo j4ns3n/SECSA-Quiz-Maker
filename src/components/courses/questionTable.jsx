@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     Table,
     TableBody,
@@ -335,7 +336,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
 
             <br /><br />
             <Typography variant="h5" gutterBottom>
-                Questions for {topic.topicName}
+                <IconButton onClick={onBackToTopics} sx={{ marginBottom: '4px' }}> <ArrowBackIcon /></IconButton>Questions for {topic.topicName}
             </Typography>
             <br />
             <br />
@@ -575,7 +576,7 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                         size="large"
                         color="primary"
                         variant="outlined"
-                        sx={{ marginBottom: '20px'}}
+                        sx={{ marginBottom: '20px' }}
                     >Cancel</Button>
                     <Button
                         onClick={handleSubmit}
@@ -599,10 +600,6 @@ const QuestionTable = ({ topic, subjectName, courseId, selectedYearLevel, onBack
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
-
-            <Button onClick={onBackToTopics} sx={{ mt: 2 }}>
-                Back to Topics
-            </Button>
         </Box>
     );
 };

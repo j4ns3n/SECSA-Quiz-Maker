@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     Table,
     TableBody,
@@ -317,7 +318,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                     <br />
                     <br />
                     <Typography variant="h5" gutterBottom>
-                        Topics for {subject.subjectName}
+                        <IconButton onClick={handleBack} sx={{ marginBottom: '4px' }}> <ArrowBackIcon /></IconButton>Topics for {subject.subjectName}
                     </Typography>
                     <br />
                     <TextField
@@ -367,7 +368,7 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                     <br />
                     <Typography
                         variant="body3"
-                        sx={{ color: 'text.secondary', fontSize: '17px'}}
+                        sx={{ color: 'text.secondary', fontSize: '17px' }}
                     >
                         Select to add to other Course
                     </Typography>
@@ -476,9 +477,6 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
                             onRowsPerPageChange={handleChangeRowsPerPage}
                         />
                     </TableContainer>
-                    <Button onClick={handleBack} sx={{ mt: 2 }}>
-                        Back to Subjects
-                    </Button>
                 </>
             )
             }

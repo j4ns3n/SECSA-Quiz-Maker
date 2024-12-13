@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
   Table,
   TableBody,
@@ -259,7 +260,7 @@ const CourseTable = ({ course, onBack }) => {
         <>
           <Typography variant="h5" gutterBottom>
             <br />
-            {course?.desc}
+            <IconButton sx={{marginBottom: '4px'}} onClick={onBack}> <ArrowBackIcon /></IconButton>{course?.desc}
             <br />
             <br />
             <FormControl style={{ width: '250px' }}>
@@ -392,9 +393,6 @@ const CourseTable = ({ course, onBack }) => {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-          <Button onClick={onBack} sx={{ mt: 2 }}>
-            Back to Courses
-          </Button>
         </>
       )}
 
