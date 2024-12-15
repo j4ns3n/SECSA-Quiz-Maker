@@ -43,7 +43,7 @@ const examSchema = new Schema({
     ],
     participants: [participantSchema], 
     totalQuestions: { type: Number, default: 0 }, 
-});
+}, { timestamps: true });
 
 const Exam = mongoose.model('Exam', examSchema);
 module.exports = Exam;
