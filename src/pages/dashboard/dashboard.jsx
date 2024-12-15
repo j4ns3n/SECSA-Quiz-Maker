@@ -12,10 +12,17 @@ import LogoSecsa from '../../assets/secsalogo.png';
 import CourseCards from '../../components/courses/courseCards';
 import Exam from '../../components/exam/exam';
 import User from '../../components/users/userComponent';
-import Footer from '../../components/Footer';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import Overview from '../../components/overview/overview';
+// import Footer from '../../components/Footer';
 
 // Navigation config
 const NAVIGATION = [
+  {
+    segment: 'overview',
+    title: 'Overview',
+    icon: <BarChartIcon />,
+  },
   {
     segment: 'courses',
     title: 'Courses',
@@ -63,6 +70,8 @@ function DemoPageContent({ pathname, onLogout }) {
         return <CourseCards />;
       case '/exams':
         return <Exam />;
+      case '/overview':
+        return <Overview />;
       case '/users':
         return <User />;
       default:
@@ -80,7 +89,7 @@ DemoPageContent.propTypes = {
 
 function Dashboard(props) {
   const { window } = props;
-  const [pathname, setPathname] = React.useState('/courses');
+  const [pathname, setPathname] = React.useState('/overview');
   const navigate = useNavigate();
 
   const role = sessionStorage.getItem('userRole');
@@ -149,7 +158,7 @@ function Dashboard(props) {
       session={session}
     >
       <DashboardLayout>
-        <DemoPageContent sx={{paddingBottom: '64px'}} pathname={pathname} onLogout={handleLogout} />
+        <DemoPageContent sx={{ paddingBottom: '64px' }} pathname={pathname} onLogout={handleLogout} />
         {/* <Footer /> */}
       </DashboardLayout>
     </AppProvider>

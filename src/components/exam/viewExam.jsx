@@ -21,7 +21,7 @@ import {
   DialogActions,
   Button
 } from '@mui/material';
-
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
@@ -42,6 +42,7 @@ const ViewExam = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [examId, setExamId] = useState('');
   const [dataAnalysis, setDataAnalysis] = useState(null);
+  const [showExamAnalysis, setShowExamAnalysis] = useState(false);
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -61,6 +62,14 @@ const ViewExam = () => {
 
     fetchExam();
   }, [dispatch]);
+
+  const handleBackClick = () => {
+    setShowExamAnalysis(false);
+  };
+
+  const handleViewAnalysisClick = () => {
+    setShowExamAnalysis(true);
+  };
 
   const handleDialogClose = () => {
     setOpenDialog(false);
@@ -309,12 +318,15 @@ const ViewExam = () => {
 
   const handleAnalysis = (exam) => {
     setDataAnalysis(exam);
+    handleViewAnalysisClick();
   }
 
   return (
     <>
-      {dataAnalysis ? (
-        <ExamAnalysis exam={dataAnalysis} />
+      {showExamAnalysis  ? (
+        <>
+          <ExamAnalysis onBack={handleBackClick} exam={dataAnalysis}  />
+        </>
       ) : (
         <>
           <Typography variant="h5" gutterBottom>List of Exams</Typography><br /><br />

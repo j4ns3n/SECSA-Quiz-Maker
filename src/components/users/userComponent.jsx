@@ -18,6 +18,7 @@ import {
     DialogContent,
     DialogActions,
     Snackbar,
+    TablePagination
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -44,10 +45,12 @@ export default function UserComponent() {
     const [existError, setExistError] = useState('');
     const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(true);
-    const [editMode, setEditMode] = useState(false); // New state for edit mode
+    const [editMode, setEditMode] = useState(false);
     const [alerts, setAlerts] = useState({ open: false, message: '', severity: 'success' });
-    const [openDialog, setOpenDialog] = useState(false); // Dialog for form
-    const [openAddUserModal, setOpenAddUserModal] = useState(false); // State to manage modal visibility
+    const [openDialog, setOpenDialog] = useState(false);
+    const [openAddUserModal, setOpenAddUserModal] = useState(false);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     const [errors, setErrors] = useState({
         firstName: false,
@@ -282,6 +285,17 @@ export default function UserComponent() {
         handleCancel();
         setExistError(false);
     }
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const currentRows = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <>
@@ -572,10 +586,10 @@ export default function UserComponent() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredUsers && filteredUsers.length > 0 ? (
-                            filteredUsers.map((u, index) => (
+                        {currentRows.length > 0 ? (
+                            currentRows.map((u, index) => (
                                 <TableRow key={u._id}>
-                                    <TableCell align="left">{index + 1}</TableCell>
+                                    <TableCell align="left">{index + 1 + page * rowsPerPage}</TableCell>
                                     <TableCell align="left">{u.firstName}</TableCell>
                                     <TableCell align="left">{u.middleName}</TableCell>
                                     <TableCell align="left">{u.lastName}</TableCell>
@@ -613,6 +627,15 @@ export default function UserComponent() {
                         )}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={filteredUsers.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </TableContainer>
         </>
     );
