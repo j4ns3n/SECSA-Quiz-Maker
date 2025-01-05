@@ -4,7 +4,16 @@ const { Schema } = mongoose;
 const participantSchema = new Schema({
     name: { type: String, required: true },
     course: { type: String },
-    score: {type: Number}
+    score: { type: Number },
+    questions: [
+        {
+            correctAnswer: { type: String, required: true },
+            isCorrect: { type: Boolean, default: false },
+            question: { type: String, required: true },
+            userAnswer: { type: String, required: true },
+            difficulty: { type: String, required: true }
+        }
+    ]
 });
 
 const examSchema = new Schema({
@@ -41,8 +50,8 @@ const examSchema = new Schema({
             },
         },
     ],
-    participants: [participantSchema], 
-    totalQuestions: { type: Number, default: 0 }, 
+    participants: [participantSchema],
+    totalQuestions: { type: Number, default: 0 },
 }, { timestamps: true });
 
 const Exam = mongoose.model('Exam', examSchema);

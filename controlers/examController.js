@@ -74,7 +74,7 @@ const findExam = async (req, res) => {
 const addParticipantsToExam = async (req, res) => {
 
     const { examId } = req.params;
-    const { name, course, score } = req.body;
+    const { name, course, score, questions } = req.body;
     try {
         const exam = await Exam.findById(examId);
 
@@ -86,7 +86,8 @@ const addParticipantsToExam = async (req, res) => {
         const participantData = {
             name: name,
             course: course,
-            score: score
+            score: score,
+            questions: questions
         }
 
         exam.participants.push(participantData);
