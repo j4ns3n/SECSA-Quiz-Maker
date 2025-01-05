@@ -1,10 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, IconButton } from '@mui/material';
+import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, IconButton, Modal, Box } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 
 const ExamAnalysis = ({ exam, onBack }) => {
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalData, setModalData] = useState([]);
+    const handleOpenModal = (title, data) => {
+        setModalTitle(title);
+        setModalData(data);
+        setModalOpen(true);
+        console.log(data);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+    };
+    let allQuestions = exam.topics.flatMap((topic) => [
+        ...topic.selectedQuestions.easy.map((question) => ({
+            ...question,
+            difficulty: 'Easy',
+        })),
+        ...topic.selectedQuestions.intermediate.map((question) => ({
+            ...question,
+            difficulty: 'Intermediate',
+        })),
+        ...topic.selectedQuestions.difficult.map((question) => ({
+            ...question,
+            difficulty: 'Difficult',
+        })),
+    ]);
+
+
+    let questionStats = allQuestions.reduce((acc, question) => {
+        acc[question.questionText] = {
+            correct: 0,
+            wrong: 0,
+            correctParticipants: [],
+            wrongParticipants: [],
+            type: question.type,
+            difficulty: question.difficulty
+        };
+        return acc;
+    }, {});
+
+    exam.participants.forEach((participant) => {
+        participant.questions.forEach((participantAnswer) => {
+            const matchedQuestion = allQuestions.find(
+                (question) => question.questionText === participantAnswer.question
+            );
+
+            if (matchedQuestion) {
+                if (matchedQuestion.answer === participantAnswer.userAnswer) {
+                    questionStats[matchedQuestion.questionText].correct += 1;
+                    questionStats[matchedQuestion.questionText].correctParticipants.push(participant.name);
+                } else {
+                    questionStats[matchedQuestion.questionText].wrong += 1;
+                    questionStats[matchedQuestion.questionText].wrongParticipants.push(participant.name);
+                }
+            }
+        });
+    });
+
+
+    const questionRows = Object.keys(questionStats).map((questionText, index) => ({
+        no: index + 1,
+        questionText,
+        correctParticipants: questionStats[questionText].correctParticipants.length,
+        countCorrectParticipants: questionStats[questionText].correctParticipants,
+        wrongParticipants: questionStats[questionText].wrongParticipants.length,
+        countWrongParticipants: questionStats[questionText].wrongParticipants,
+        difficulty: questionStats[questionText].difficulty,
+        type: questionStats[questionText].type,
+    }));
+
+
+    console.log(questionRows);
+
     const totalQuestions = exam.totalQuestions;
 
     let passed = 0;
@@ -28,9 +102,8 @@ const ExamAnalysis = ({ exam, onBack }) => {
 
     const COLORS = ['#00C49F', '#FF8042'];
 
-
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -41,7 +114,8 @@ const ExamAnalysis = ({ exam, onBack }) => {
         setPage(0);
     };
 
-    const paginatedParticipants = exam.participants.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const displayedQuestions = questionRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
 
     return (
         <>
@@ -74,36 +148,97 @@ const ExamAnalysis = ({ exam, onBack }) => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>No.</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Course</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Score</TableCell>
+                            <TableCell>No.</TableCell>
+                            <TableCell>Question</TableCell>
+                            <TableCell>Type</TableCell>
+                            <TableCell>Difficulty</TableCell>
+                            <TableCell align="center">Correct Answers</TableCell>
+                            <TableCell align="center">Wrong Answers</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {paginatedParticipants.map((participant, index) => {
-                            const { score, name, course } = participant;
-                            return (
-                                <TableRow key={index}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{name}</TableCell>
-                                    <TableCell>{course}</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>{score}</TableCell>
-                                </TableRow>
-                            );
-                        })}
+                        {displayedQuestions.map((question, index) => (
+                            <TableRow key={index}>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell align="center" sx={{ width: '300px' }}>{question.questionText}</TableCell>
+                                <TableCell align="center">{question.type}</TableCell>
+                                <TableCell align="center">{question.difficulty}</TableCell>
+                                <TableCell
+                                    align="center"
+                                    style={{ cursor: 'pointer', color: 'green' }}
+                                    onClick={() =>
+                                        handleOpenModal('Correct Answers', question.countCorrectParticipants)
+                                    }
+                                >{question.correctParticipants}</TableCell>
+                                <TableCell
+                                    align="center"
+                                    style={{ cursor: 'pointer', color: 'red' }}
+                                    onClick={() =>
+                                        handleOpenModal('Wrong Answers', question.countWrongParticipants)
+                                    }
+                                >{question.wrongParticipants}</TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </TableContainer>
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={exam.participants.length}
+                count={allQuestions.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />
+
+            <Modal open={modalOpen} onClose={handleCloseModal}>
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 400,
+                        height: 500, // Fixed height
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        p: 4,
+                        borderRadius: 2,
+                        overflowY: 'auto', // Scrollable content
+                    }}
+                >
+                    <Typography variant="h6" component="h2" gutterBottom>
+                        {modalTitle}
+                    </Typography>
+                    {modalData.length > 0 ? (
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Student Name</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {modalData.map((student, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <strong>{index + 1}.</strong> {student}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <Typography
+                            variant="body1"
+                            color="textSecondary"
+                            sx={{ textAlign: 'center', marginTop: '20px' }}
+                        >
+                            No students to display.
+                        </Typography>
+                    )}
+                </Box>
+            </Modal>
         </>
     );
 };

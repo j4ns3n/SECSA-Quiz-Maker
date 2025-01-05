@@ -192,8 +192,15 @@ const QuizPage = () => {
       }))
     };
 
+    data.questions = quizResults.map(result => ({
+      question: result.question,
+      userAnswer: result.userAnswer,
+      correctAnswer: result.correctAnswer,
+      isCorrect: result.userAnswer === result.correctAnswer,
+      difficulty: result.difficulty,
+    }))
     console.log(examData);
-
+    console.log(data);
     try {
       const response = await fetch(`/api/user/exam/${decodedToken.id}`, {
         method: 'PATCH',
@@ -208,7 +215,6 @@ const QuizPage = () => {
       }
 
       const responseData = await response.json();
-      console.log(responseData);
       if (responseData) {
         console.log(data);
         try {
@@ -291,8 +297,8 @@ const QuizPage = () => {
 
                 {quizQuestions[currentQuestion].type === 'True or False' && (
                   <RadioGroup value={getAnswerForQuestion(currentQuestion, 'True or False')} onChange={handleOptionChange}>
-                    <FormControlLabel value="true" control={<Radio />} label="True" />
-                    <FormControlLabel value="false" control={<Radio />} label="False" />
+                    <FormControlLabel value="True" control={<Radio />} label="True" />
+                    <FormControlLabel value="False" control={<Radio />} label="False" />
                   </RadioGroup>
                 )}
 
