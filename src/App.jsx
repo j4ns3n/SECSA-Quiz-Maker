@@ -13,8 +13,7 @@ import ReviewPage from './components/quizes/exams/reviewPage';
 
 function App() {
   return (
-    // style={{ userSelect: "none" }}
-    <div className="App" >
+    <div className="App" style={{ userSelect: "none" }} >
       <BrowserRouter>
         <UserContextProvider>
           <AppRoutes />
@@ -95,30 +94,30 @@ function AppRoutes() {
   };
 
   // Disable right-click and certain keyboard shortcuts
-  // useEffect(() => {
-  //   const handleContextMenu = (e) => e.preventDefault(); // Disable right-click
-  //   const handleKeyDown = (e) => {
-  //     if (
-  //       e.key === "F12" || // F12 key
-  //       (e.ctrlKey && e.shiftKey && e.key === "I") || // Ctrl+Shift+I
-  //       (e.ctrlKey && e.shiftKey && e.key === "J") || // Ctrl+Shift+J
-  //       (e.ctrlKey && e.key === "U") || // Ctrl+U
-  //       (e.ctrlKey && e.key === "S") // Ctrl+S
-  //     ) {
-  //       e.preventDefault();
-  //     }
-  //   };
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault(); // Disable right-click
+    const handleKeyDown = (e) => {
+      if (
+        e.key === "F12" || // F12 key
+        (e.ctrlKey && e.shiftKey && e.key === "I") || // Ctrl+Shift+I
+        (e.ctrlKey && e.shiftKey && e.key === "J") || // Ctrl+Shift+J
+        (e.ctrlKey && e.key === "U") || // Ctrl+U
+        (e.ctrlKey && e.key === "S") // Ctrl+S
+      ) {
+        e.preventDefault();
+      }
+    };
 
-  //   // Attach event listeners
-  //   document.addEventListener("contextmenu", handleContextMenu);
-  //   document.addEventListener("keydown", handleKeyDown);
+    // Attach event listeners
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
 
-  //   // Clean up event listeners on component unmount
-  //   return () => {
-  //     document.removeEventListener("contextmenu", handleContextMenu);
-  //     document.removeEventListener("keydown", handleKeyDown);
-  //   };
-  // }, []);
+    // Clean up event listeners on component unmount
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <Routes>
