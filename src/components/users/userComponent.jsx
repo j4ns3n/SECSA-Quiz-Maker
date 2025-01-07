@@ -54,7 +54,6 @@ export default function UserComponent() {
 
     const [errors, setErrors] = useState({
         firstName: false,
-        middleName: false,
         lastName: false,
         department: false,
         username: false,
@@ -125,26 +124,47 @@ export default function UserComponent() {
     };
 
     const validateForm = () => {
-        const newErrors = {};
-        Object.keys(formValues).forEach((key) => {
-            newErrors[key] = formValues[key] === '';
-        });
+        const newErrors = {
+            firstName: formValues.firstName === '',
+            lastName: formValues.lastName === '',
+            department: formValues.department === '',
+            username: formValues.username === '',
+            password: editMode ? false : formValues.password === '', // Password is required only in Add mode
+            email: formValues.email === '',
+            role: formValues.role === '', // Role is required
+            // No validation for middleName, course, and yearLevel
+        };
+
+        // Check if the course field is required only for 'student' role
+        if (formValues.role === 'Student') {
+            newErrors.course = formValues.course === ''; // If role is 'student', course is required
+            newErrors.yearLevel = formValues.yearLevel === ''; // If role is 'student', course is required
+        }
+
         setErrors(newErrors);
 
+        // Ensure that all errors are false for successful form submission
         return Object.values(newErrors).every((error) => error === false);
     };
 
+
     const handleSubmit = async () => {
+        console.log('Validation:', validateForm()); // Add this line to check validation output
+
         if (validateForm()) {
+            console.log('Form is valid');
             if (editMode) {
-                // Update existing user
+                console.log('Updating userASDASDASD');
                 handleUpdateUser();
             } else {
-                // Add new user
+                console.log('Adding user');
                 handleAddUser();
             }
+        } else {
+            console.log('Form validation failed');
         }
     };
+
 
     const handleAddUser = async () => {
         console.log(formValues);
@@ -562,7 +582,7 @@ export default function UserComponent() {
                         <TableRow>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>No.</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>First Name</TableCell>
-                            <TableCell align="left" sx={{ fontWeight: 'bold' }}>Middle Name</TableCell>
+                            <TableCell align="left" sx={{ fontWeight: 'bold' }}>Middle Initial</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Last Name</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Username</TableCell>
                             <TableCell align="left" sx={{ fontWeight: 'bold' }}>Email</TableCell>
@@ -591,7 +611,7 @@ export default function UserComponent() {
                                 <TableRow key={u._id}>
                                     <TableCell align="left">{index + 1 + page * rowsPerPage}</TableCell>
                                     <TableCell align="left">{u.firstName}</TableCell>
-                                    <TableCell align="left">{u.middleName}</TableCell>
+                                    <TableCell align="center">{u.middleName}</TableCell>
                                     <TableCell align="left">{u.lastName}</TableCell>
                                     <TableCell align="left">{u.username}</TableCell>
                                     <TableCell align="left">{u.email}</TableCell>

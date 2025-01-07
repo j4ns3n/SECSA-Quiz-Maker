@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
-
 const QuizPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
@@ -18,6 +17,7 @@ const QuizPage = () => {
   const { userData } = location.state || {};
   const [decodedToken, setDecodedToken] = useState('');
   const navigate = useNavigate();
+
   // Flatten questions from the quizData
   const quizQuestions = quizData?.topics?.reduce((acc, topic) => {
     const { easy, intermediate, difficult } = topic.selectedQuestions;
@@ -29,6 +29,13 @@ const QuizPage = () => {
     ];
   }, []) || [];
 
+  // Shuffle the quiz questions
+  const shuffleQuestions = (questions) => {
+    return questions.sort(() => Math.random() - 0.5);
+  };
+
+  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+
   useEffect(() => {
     setScore(0);
     setUserAnswers({});
@@ -36,6 +43,7 @@ const QuizPage = () => {
     setQuizCompleted(false);
     setAnsweredQuestions(new Set());
     setDecodedToken(jwtDecode(localStorage.getItem("authToken")));
+    setShuffledQuestions(shuffleQuestions(quizQuestions)); // Shuffle questions when quizData is available
   }, [quizData]);
 
   // Handler for multiple choice and true/false answers
@@ -92,7 +100,7 @@ const QuizPage = () => {
 
   // Handle when the user goes to the next question or completes the quiz
   const handleNextQuestion = () => {
-    const current = quizQuestions[currentQuestion];
+    const current = shuffledQuestions[currentQuestion];
     const userAnswer = userAnswers[currentQuestion];
 
     // Only update score if the question hasn't been answered before
@@ -119,7 +127,7 @@ const QuizPage = () => {
     }
 
     // Check if it's the last question, then finish the quiz
-    if (currentQuestion < quizQuestions.length - 1) {
+    if (currentQuestion < shuffledQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       setIsFinished(true);
@@ -176,7 +184,6 @@ const QuizPage = () => {
   }, [isFinished, userData.course, userData.name, score, quizData._id, answeredQuestions]);
 
   const examToDb = async (data) => {
-    // console.log(data);
     const examData = {
       examId: data.examId,
       examTitle: quizData.title,
@@ -192,15 +199,6 @@ const QuizPage = () => {
       }))
     };
 
-    data.questions = quizResults.map(result => ({
-      question: result.question,
-      userAnswer: result.userAnswer,
-      correctAnswer: result.correctAnswer,
-      isCorrect: result.userAnswer === result.correctAnswer,
-      difficulty: result.difficulty,
-    }))
-    console.log(examData);
-    console.log(data);
     try {
       const response = await fetch(`/api/user/exam/${decodedToken.id}`, {
         method: 'PATCH',
@@ -216,7 +214,6 @@ const QuizPage = () => {
 
       const responseData = await response.json();
       if (responseData) {
-        console.log(data);
         try {
           const response = await fetch(`/api/exams/${data.examId}`, {
             method: 'PATCH',
@@ -231,12 +228,10 @@ const QuizPage = () => {
           }
 
           const examData = await response.json();
-          console.log(examData);
         } catch (error) {
           console.error('Exam submitted:', error);
         }
       }
-      console.log(responseData);
     } catch (error) {
       console.error('Exam submission error:', error);
     }
@@ -258,7 +253,7 @@ const QuizPage = () => {
           justifyContent: 'center',
           alignItems: 'center'
         }}
-      >
+        >
         <Card
           sx={{
             width: 600,
@@ -272,73 +267,75 @@ const QuizPage = () => {
         >
           <CardContent sx={{ flex: '1 1 auto', overflow: 'auto' }}>
             {!isFinished ? (
-              <>
-                <div className="container" style={{ borderBottom: "1px #8d8d8d solid", paddingBottom: "23px" }}>
-                  <Typography variant="h5">
-                    <strong>{quizData.title}</strong>
+              shuffledQuestions.length > 0 && shuffledQuestions[currentQuestion] ? (
+                <>
+                  <div className="container" style={{ borderBottom: "1px #8d8d8d solid", paddingBottom: "23px" }}>
+                    <Typography variant="h5">
+                      <strong>{quizData.title}</strong>
+                    </Typography>
+                    <br />
+                    <Typography variant="h5">
+                      {quizData.course}
+                    </Typography>
+                  </div>
+
+                  <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
+                    <strong>{currentQuestion + 1}. </strong>{shuffledQuestions[currentQuestion].questionText}
                   </Typography>
-                  <br />
-                  <Typography variant="h5">
-                    {quizData.course}
-                  </Typography>
-                </div>
 
-                <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
-                  <strong>{currentQuestion + 1}. </strong>{quizQuestions[currentQuestion].questionText}
-                </Typography>
+                  {shuffledQuestions[currentQuestion].type === 'Multiple Choice' && (
+                    <RadioGroup value={getAnswerForQuestion(currentQuestion, 'Multiple Choice')} onChange={handleOptionChange}>
+                      {shuffledQuestions[currentQuestion].choices.map((option, index) => (
+                        <FormControlLabel key={index} value={option} control={<Radio />} label={option} />
+                      ))}
+                    </RadioGroup>
+                  )}
 
-                {quizQuestions[currentQuestion].type === 'Multiple Choice' && (
-                  <RadioGroup value={getAnswerForQuestion(currentQuestion, 'Multiple Choice')} onChange={handleOptionChange}>
-                    {quizQuestions[currentQuestion].choices.map((option, index) => (
-                      <FormControlLabel key={index} value={option} control={<Radio />} label={option} />
-                    ))}
-                  </RadioGroup>
-                )}
+                  {shuffledQuestions[currentQuestion].type === 'True or False' && (
+                    <RadioGroup value={getAnswerForQuestion(currentQuestion, 'True or False')} onChange={handleOptionChange}>
+                      <FormControlLabel value="True" control={<Radio />} label="True" />
+                      <FormControlLabel value="False" control={<Radio />} label="False" />
+                    </RadioGroup>
+                  )}
 
-                {quizQuestions[currentQuestion].type === 'True or False' && (
-                  <RadioGroup value={getAnswerForQuestion(currentQuestion, 'True or False')} onChange={handleOptionChange}>
-                    <FormControlLabel value="True" control={<Radio />} label="True" />
-                    <FormControlLabel value="False" control={<Radio />} label="False" />
-                  </RadioGroup>
-                )}
+                  {shuffledQuestions[currentQuestion].type === 'Identification' && (
+                    <TextField
+                      label="Your Answer"
+                      variant="outlined"
+                      fullWidth
+                      value={getAnswerForQuestion(currentQuestion, 'Identification')}
+                      onChange={handleIdentificationChange}
+                    />
+                  )}
 
-                {quizQuestions[currentQuestion].type === 'Identification' && (
-                  <TextField
-                    label="Your Answer"
-                    variant="outlined"
-                    fullWidth
-                    value={getAnswerForQuestion(currentQuestion, 'Identification')}
-                    onChange={handleIdentificationChange}
-                  />
-                )}
+                  {shuffledQuestions[currentQuestion].type === 'Worded Problem' && (
+                    <TextField
+                      label="Your Answer (Numeric)"
+                      variant="outlined"
+                      fullWidth
+                      type="number"
+                      value={getAnswerForQuestion(currentQuestion, 'Worded Problem')}
+                      onChange={handleNumericChange}
+                    />
+                  )}
 
-                {quizQuestions[currentQuestion].type === 'Worded Problem' && (
-                  <TextField
-                    label="Your Answer (Numeric)"
-                    variant="outlined"
-                    fullWidth
-                    type="number"
-                    value={getAnswerForQuestion(currentQuestion, 'Worded Problem')}
-                    onChange={handleNumericChange}
-                  />
-                )}
-
-                {quizQuestions[currentQuestion].type === 'Essay' && (
-                  <TextField
-                    label="Your Answer (Essay)"
-                    variant="outlined"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={getAnswerForQuestion(currentQuestion, 'Essay')}
-                    onChange={handleEssayChange}
-                  />
-                )}
-              </>
+                  {shuffledQuestions[currentQuestion].type === 'Essay' && (
+                    <TextField
+                      label="Your Answer (Essay)"
+                      variant="outlined"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      value={getAnswerForQuestion(currentQuestion, 'Essay')}
+                      onChange={handleEssayChange}
+                    />
+                  )}
+                </>
+              ) : null
             ) : (
               <Box textAlign="center">
                 <Typography variant="h4">Exam Finished!</Typography>
-                {score / quizQuestions.length >= 0.6 ? (
+                {score / shuffledQuestions.length >= 0.6 ? (
                   <Typography variant="h5" sx={{ mt: 10, color: 'green' }}>
                     <strong>Passed! 😄</strong>
                   </Typography>
@@ -347,7 +344,7 @@ const QuizPage = () => {
                     <strong>Failed! 🙁</strong>
                   </Typography>
                 )}
-                <Typography variant="h5" sx={{ mt: 10 }}><strong>{`Your score: ${score} / ${quizQuestions.length}`}</strong></Typography>
+                <Typography variant="h5" sx={{ mt: 10 }}><strong>{`Your score: ${score} / ${shuffledQuestions.length}`}</strong></Typography>
                 <Button variant="contained" color="primary" onClick={restartQuiz} sx={{ mt: 10 }}>
                   Restart Quiz
                 </Button>
@@ -365,7 +362,7 @@ const QuizPage = () => {
               onClick={handleNextQuestion}
               disabled={quizCompleted}
             >
-              {currentQuestion === quizQuestions.length - 1 ? 'Finish' : 'Next'}
+              {currentQuestion === shuffledQuestions.length - 1 ? 'Finish' : 'Next'}
             </Button>
           </Box>
         </Card>

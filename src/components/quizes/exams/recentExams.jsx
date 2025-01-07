@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Button, Typography, Table, TableHead, TableBody, TableRow, TableCell, Paper, Box, TablePagination, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Button, Typography, Table, TableHead, TableBody, TableRow, TableCell, Paper, Box, TablePagination, IconButton, TableContainer } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoSecsa from '../../../assets/secsalogo.png';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { jwtDecode } from 'jwt-decode';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { red } from '@mui/material/colors';
 
 const RecentExams = () => {
     const [hover, setHover] = useState(false);
@@ -121,7 +119,7 @@ const RecentExams = () => {
                     <Typography variant="h5">{'Recent Exam(s)'}</Typography>
                 </Box>
                 <br />
-                <Paper>
+                <TableContainer component={Paper}>
                     <Table>
                         <TableHead>
                             <TableRow>
@@ -143,13 +141,10 @@ const RecentExams = () => {
                                         <TableCell>{exam.code}</TableCell>
                                         <TableCell sx={{ width: '250px' }}>{exam.course}</TableCell>
                                         <TableCell sx={{ width: '250px' }}>{formatDate(exam.createdAt)}</TableCell>
-                                        <TableCell>{exam.score}</TableCell>
+                                        <TableCell>{exam.score} / {exam.questions.length}</TableCell>
                                         <TableCell align="center">
                                             <IconButton onClick={() => handleReviewPage(exam)}>
                                                 <RemoveRedEyeIcon sx={{ cursor: 'pointer' }} />
-                                            </IconButton>
-                                            <IconButton>
-                                                <BarChartIcon sx={{ color: red[900] }} />
                                             </IconButton>
                                         </TableCell>
                                     </TableRow>
@@ -170,7 +165,7 @@ const RecentExams = () => {
                         onPageChange={handleChangePage}
                         onRowsPerPageChange={handleChangeRowsPerPage}
                     />
-                </Paper>
+                </TableContainer>
             </Box>
         </div>
     )
