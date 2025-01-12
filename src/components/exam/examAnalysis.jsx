@@ -65,7 +65,9 @@ const ExamAnalysis = ({ exam, onBack }) => {
     });
 
 
-    const questionRows = Object.keys(questionStats).map((questionText, index) => ({
+    const questionRows = Object.keys(questionStats).map((questionText, index) => (
+        console.log(questionStats),
+        {
         no: index + 1,
         questionText,
         correctParticipants: questionStats[questionText].correctParticipants.length,
@@ -83,6 +85,8 @@ const ExamAnalysis = ({ exam, onBack }) => {
 
     let passed = 0;
     let failed = 0;
+    const passedStudents = [];
+    const failedStudents = [];
 
     exam.participants.forEach((participant) => {
         const { score } = participant;
@@ -90,8 +94,10 @@ const ExamAnalysis = ({ exam, onBack }) => {
 
         if (percentage >= 50) {
             passed += 1;
+            passedStudents.push(participant.name);
         } else {
             failed += 1;
+            failedStudents.push(participant.name);
         }
     });
 
@@ -116,6 +122,13 @@ const ExamAnalysis = ({ exam, onBack }) => {
 
     const displayedQuestions = questionRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+    const handlePieChartClick = (data, index) => {
+        if (index === 0) {
+            handleOpenModal('Students who Passed', passedStudents);
+        } else {
+            handleOpenModal('Students who Failed', failedStudents);
+        }
+    };
 
     return (
         <>
@@ -134,6 +147,7 @@ const ExamAnalysis = ({ exam, onBack }) => {
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
+                        onClick={handlePieChartClick}
                     >
                         {scoreDistribution.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

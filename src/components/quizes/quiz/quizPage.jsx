@@ -177,13 +177,21 @@ const QuizPage = () => {
         name: userData.name,
         examId: quizData._id,
         course: userData.course,
-        score: score
+        score: score, 
+        questions: quizResults.map(result => ({
+          question: result.question,
+          userAnswer: result.userAnswer,
+          correctAnswer: result.correctAnswer,
+          isCorrect: result.userAnswer === result.correctAnswer,
+          difficulty: result.difficulty,
+        }))
       }
       examToDb(data)
     }
   }, [isFinished, userData.course, userData.name, score, quizData._id, answeredQuestions]);
 
   const examToDb = async (data) => {
+    console.log(data);
     const examData = {
       examId: data.examId,
       examTitle: quizData.title,
@@ -226,8 +234,6 @@ const QuizPage = () => {
           if (!response.ok) {
             throw new Error('Failed to submit exam');
           }
-
-          const examData = await response.json();
         } catch (error) {
           console.error('Exam submitted:', error);
         }

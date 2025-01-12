@@ -274,16 +274,22 @@ const CreateExam = () => {
     };
 
     const handleSelectChange = (topicIndex, difficulty, count) => {
-        const topic = topics[topicIndex];
-        const questionsForDifficulty = topic.questions.filter(
-            (question) => question.difficulty.toLowerCase() === difficulty
+        // Flatten and shuffle all questions globally across all topics
+        const allQuestions = topics.flatMap((topic) => topic.questions);
+        const shuffledQuestions = [...allQuestions].sort(() => Math.random() - 0.5);
+
+        // Filter shuffled questions by selected topic and difficulty
+        const questionsForDifficulty = shuffledQuestions.filter(
+            (question) =>
+                question.difficulty.toLowerCase() === difficulty &&
+                topics[topicIndex].questions.includes(question) // Match the current topic
         );
 
         // Ensure count is a number and non-negative
         const countValue = Math.max(0, parseInt(count, 10) || 0);
         const selected = questionsForDifficulty.slice(0, countValue);
 
-        setSelectedQuestions(prevSelectedQuestions => {
+        setSelectedQuestions((prevSelectedQuestions) => {
             const updatedSelection = { ...prevSelectedQuestions };
 
             // Initialize topic index if it doesn't exist
@@ -295,7 +301,7 @@ const CreateExam = () => {
                 };
             }
 
-            // Update the selected difficulty
+            // Assign globally shuffled questions to the difficulty level
             updatedSelection[topicIndex] = {
                 ...updatedSelection[topicIndex],
                 [difficulty]: selected,
@@ -304,6 +310,8 @@ const CreateExam = () => {
             return updatedSelection;
         });
     };
+
+
 
     return (
         <>

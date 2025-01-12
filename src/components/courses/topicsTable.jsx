@@ -131,7 +131,6 @@ const TopicsTable = ({ subject, courseId, selectedYearLevel, onBack }) => {
     const validateForm = () => {
         const newErrors = {
             topicName: topicName ? '' : 'Topic Name is required',
-            topicDesc: topicDesc ? '' : 'Topic Description is required',
         };
         setErrors(newErrors);
         return !newErrors.topicName && !newErrors.topicDesc;
