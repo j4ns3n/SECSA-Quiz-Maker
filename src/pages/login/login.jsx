@@ -137,7 +137,7 @@ function Login({ onLogin }) {
       </div>
       <div style={styles.formContainer}>
         <div style={styles.insideContrainer}>
-          <h1 style={styles.header}>SECSA Quiz Maker</h1><br /><br />
+          <h1 style={styles.header}>SECSA Quiz Generator</h1><br /><br />
           <form onSubmit={handleSubmit}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Username</label>

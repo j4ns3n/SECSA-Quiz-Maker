@@ -149,7 +149,7 @@ function Dashboard(props) {
       }))}
       branding={{
         logo: <img src={LogoSecsa} alt="SECSA logo" />,
-        title: 'SECSA Quiz Maker',
+        title: 'SECSA Quiz Generator',
       }}
       router={router}
       theme={demoTheme}

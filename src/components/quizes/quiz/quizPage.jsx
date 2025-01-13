@@ -247,7 +247,7 @@ const QuizPage = () => {
     <div
       style={{
         height: '100vh',
-        background: 'linear-gradient(to right, #FCC31A, #FF9201, #DE791E)',
+        background: 'linear-gradient(to top, #ffdc75, #d37900, #a54e00)',
         color: '#fff'
       }}
     >
