@@ -3,8 +3,8 @@ const crypto = require('crypto');
 
 // Create a new exam
 const createExam = async (req, res) => {
-    const { title, course, yearLevel, subjects, topics } = req.body;
-
+    const { title, course, yearLevel, subjects, topics, timer, passingRate } = req.body;
+    
     try {
         let totalQuestions = 0;
         const examCode = crypto.randomBytes(3).toString('hex').toUpperCase();
@@ -21,9 +21,10 @@ const createExam = async (req, res) => {
             subjects,
             topics,
             totalQuestions,
-            examCode
+            examCode,
+            timer,
+            passingRate
         });
-
         await newExam.save();
         res.status(201).json(newExam);
 
