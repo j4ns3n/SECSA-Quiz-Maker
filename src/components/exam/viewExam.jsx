@@ -52,6 +52,7 @@ const ViewExam = () => {
           throw new Error('Failed to fetch exams');
         }
         const json = await response.json();
+        console.log(json);
         dispatch({ type: 'SET_EXAM', payload: json });
         setLoading(false);
       } catch (err) {

@@ -26,6 +26,8 @@ import { useCoursesContext } from '../../hooks/useCourseContext';
 
 const CreateExam = () => {
     const [title, setTitle] = useState('');
+    const [passingRate, setPassingRate] = useState(0);
+    const [timer, setTimer] = useState(0);
     const [selectedCourse, setSelectedCourse] = useState('');
     const [desc, setDesc] = useState('');
     const [selectedYearLevel, setSelectedYearLevel] = useState('');
@@ -221,6 +223,8 @@ const CreateExam = () => {
     const handleSubmit = async () => {
         const newErrors = {};
         if (!title) newErrors.title = "Title is required";
+        if (!timer) newErrors.timer = "Timer is required";
+        if (!passingRate) newErrors.passingRate = "Passing Rate is required";
         if (!selectedCourse) newErrors.course = "Course is required";
         if (selectedSubjects.length === 0) newErrors.subject = "At least one Subject is required";
 
@@ -237,7 +241,9 @@ const CreateExam = () => {
                 course: desc,
                 yearLevel: selectedYearLevel,
                 subjects: subjects.map(subject => subject.subjectName),
-                topics: examData
+                topics: examData,
+                timer: parseInt(timer),
+                passingRate: parseInt(passingRate),
             };
 
             console.log(examSummary); // Check your exam summary before submission
@@ -262,6 +268,8 @@ const CreateExam = () => {
                 setTitle('');
                 setSelectedCourse('');
                 setSelectedYearLevel('');
+                setPassingRate('');
+                setTimer('');
                 setSelectedSubjects([]);
                 setTopics([]);
                 setSelectedQuestions({});
@@ -330,25 +338,6 @@ const CreateExam = () => {
                 Create an Exam
             </Typography>
             <br />
-            <TextField
-                id="outlined-basic"
-                label="Title"
-                variant="outlined"
-                required
-                value={title}
-                error={!!errors.title}
-                helperText={errors.title}
-                onChange={(e) => {
-                    setTitle(e.target.value);
-                    if (e.target.value) {
-                        setErrors((prev) => ({ ...prev, title: '' })); // Clear error
-                    }
-                }}
-            />
-            <br />
-            <br />
-
-            {/* Course Select */}
             <FormControl required sx={{ minWidth: 170, mr: 3 }} error={!!errors.course}>
                 <InputLabel id="select-course-label">Course</InputLabel>
                 <Select
@@ -385,8 +374,55 @@ const CreateExam = () => {
                 </Select>
                 {errors.yearLevel && <p style={{ color: 'red' }}>{errors.yearLevel}</p>}
             </FormControl>
-
             <br />
+            <br />
+            <TextField
+                id="outlined-basic"
+                label="Title"
+                variant="outlined"
+                required
+                value={title}
+                error={!!errors.title}
+                helperText={errors.title}
+                onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (e.target.value) {
+                        setErrors((prev) => ({ ...prev, title: '' })); // Clear error
+                    }
+                }}
+            />
+            <TextField
+                sx={{ marginLeft: 2, width: '100px' }}
+                id="outlined-basic"
+                label="Timer(min)"
+                variant="outlined"
+                required
+                value={timer}
+                error={!!errors.timer}
+                helperText={errors.timer}
+                onChange={(e) => {
+                    setTimer(e.target.value);
+                    if (e.target.value) {
+                        setErrors((prev) => ({ ...prev, timer: '' })); // Clear error
+                    }
+                }}
+            />
+            <TextField
+                sx={{ marginLeft: 2, width: '130px', marginBottom: 2 }}
+                id="outlined-basic"
+                label="Passing Rate(%)"
+                variant="outlined"
+                required
+                value={passingRate}
+                error={!!errors.passingRate}
+                helperText={errors.passingRate}
+                onChange={(e) => {
+                    setPassingRate(e.target.value);
+                    if (e.target.value) {
+                        setErrors((prev) => ({ ...prev, passingRate: '' })); // Clear error
+                    }
+                }}
+            />
             <br />
             {/* Subject Select */}
             <FormControl required sx={{ minWidth: 300, mr: 3 }} disabled={!selectedYearLevel || subjects.length === 0} error={!!errors.subject}>

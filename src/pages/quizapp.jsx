@@ -3,6 +3,7 @@ import { AppBar, Toolbar, Button, Container, Box, Typography } from '@mui/materi
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import LogoSecsa from '../assets/secsalogo.png';
 import LogoutIcon from '@mui/icons-material/Logout';
+import scbackground from '../assets/sbbg.png'
 
 const QuizApp = () => {
     const navigate = useNavigate(); // Initialize navigate
@@ -26,10 +27,16 @@ const QuizApp = () => {
     return (
         <div style={{
             height: '100vh',
-            background: 'linear-gradient(to top, #ffdc75, #d37900, #a54e00)',
+            backgroundImage: `url(${scbackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             color: '#fff'
         }}>
-            <AppBar position="static" style={{ backgroundColor: '#FF9201' }}>
+            <AppBar position="static" style={{
+                backgroundColor: 'transparent',
+                boxShadow: '0 2px 15px rgba(0, 0, 0, 0.3)'
+            }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <img src={LogoSecsa} alt="logo" style={{ height: '40px' }} />
@@ -37,9 +44,7 @@ const QuizApp = () => {
 
                     <Button
                         style={{
-                            backgroundColor: hover ? '#fff' : '#FF9201',
                             color: hover ? '#FF9201' : '#fff',
-                            border: '1px solid #FF9201',
                             transition: 'background-color 0.3s, color 0.3s',
                         }}
                         onMouseEnter={() => setHover(true)}

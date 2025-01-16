@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import LogoSecsa from '../../../assets/secsalogo.png';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import scbackground from '../../../assets/sbbg.png';
 
 const QuizCode = () => {
     const [quizCode, setQuizCode] = useState('');
@@ -14,6 +15,7 @@ const QuizCode = () => {
     const [hover, setHover] = useState(false);
 
     useEffect(() => {
+        console.log(quizData);
         if (quizData) {
             const name = sessionStorage.getItem('firstName') + ' ' + sessionStorage.getItem('middleName') + ' ' + sessionStorage.getItem('lastName');
             const yearLevel = sessionStorage.getItem('yearLevel');
@@ -41,16 +43,25 @@ const QuizCode = () => {
     }, [quizData, navigate]);
 
     const handleJoinClick = async () => {
+        if (!quizCode) {
+            setError('Quiz code is required.');
+            return;
+        }
+        if (quizCode.length < 5) { 
+            setError('Quiz code must be at least 5 characters long.');
+            return;
+        }
         try {
             const response = await fetch(`/api/exams/${quizCode}`);
 
             if (!response.ok) {
                 throw new Error('Quiz not found, please check the code.');
             }
+
             const data = await response.json();
 
             if (data) {
-                setQuizData(data); // Store the quiz data in state
+                setQuizData(data);
                 setError('');
             } else {
                 setError('Quiz not found, please check the code.');
@@ -60,6 +71,7 @@ const QuizCode = () => {
             setError('Quiz not found, please check the code.');
         }
     };
+
 
     const handleLogout = React.useCallback(() => {
         sessionStorage.clear();
@@ -74,10 +86,16 @@ const QuizCode = () => {
     return (
         <div style={{
             height: '100vh',
-            background: 'linear-gradient(to top, #ffdc75, #d37900, #a54e00)',
+            backgroundImage: `url(${scbackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             color: '#fff'
         }}>
-            <AppBar position="static" style={{ backgroundColor: '#FF9201' }}>
+            <AppBar position="static" style={{
+                backgroundColor: 'transparent',
+                boxShadow: '0 2px 15px rgba(0, 0, 0, 0.3)'
+            }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <img src={LogoSecsa} alt="logo" style={{ height: '40px' }} />
@@ -85,9 +103,7 @@ const QuizCode = () => {
 
                     <Button
                         style={{
-                            backgroundColor: hover ? '#fff' : '#FF9201',
                             color: hover ? '#FF9201' : '#fff',
-                            border: '1px solid #FF9201',
                             transition: 'background-color 0.3s, color 0.3s',
                         }}
                         onMouseEnter={() => setHover(true)}
@@ -106,7 +122,7 @@ const QuizCode = () => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '20px' }}>
-                    <IconButton onClick={handleBack}><ArrowBackIcon sx={{color: '#FFFF'}} /></IconButton>
+                    <IconButton onClick={handleBack}><ArrowBackIcon sx={{ color: '#FFFF' }} /></IconButton>
                     <TextField
                         value={quizCode}
                         onChange={(e) => setQuizCode(e.target.value)}
@@ -122,7 +138,7 @@ const QuizCode = () => {
                     />
                     <Button
                         variant="outlined"
-                        style={{ backgroundColor: '#FF9201', color: "#fff" }}
+                        style={{ borderColor: '#FF9201', color: "#fff" }}
                         onClick={handleJoinClick}
                     >
                         Join

@@ -3,6 +3,7 @@ import { Container, Card, CardContent, Typography, Button, Radio, RadioGroup, Fo
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import scbackground from '../../../assets/sbbg.png';
 
 const QuizPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -17,6 +18,7 @@ const QuizPage = () => {
   const { userData } = location.state || {};
   const [decodedToken, setDecodedToken] = useState('');
   const navigate = useNavigate();
+  const [timeLeft, setTimeLeft] = useState(quizData?.timer * 60 || 600);
 
   // Flatten questions from the quizData
   const quizQuestions = quizData?.topics?.reduce((acc, topic) => {
@@ -45,6 +47,20 @@ const QuizPage = () => {
     setDecodedToken(jwtDecode(localStorage.getItem("authToken")));
     setShuffledQuestions(shuffleQuestions(quizQuestions)); // Shuffle questions when quizData is available
   }, [quizData]);
+
+  useEffect(() => {
+    if (timeLeft > 0 && !isFinished) {
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => Math.max(prevTime - 1, 0)); // Prevent negative values
+      }, 1000);
+
+      return () => clearInterval(timer); // Cleanup interval on component unmount
+    } else if (timeLeft === 0 && !isFinished) {
+      setIsFinished(true);
+      setQuizCompleted(true);
+    }
+  }, [timeLeft, isFinished]);
+
 
   // Handler for multiple choice and true/false answers
   const handleOptionChange = (event) => {
@@ -177,7 +193,7 @@ const QuizPage = () => {
         name: userData.name,
         examId: quizData._id,
         course: userData.course,
-        score: score, 
+        score: score,
         questions: quizResults.map(result => ({
           question: result.question,
           userAnswer: result.userAnswer,
@@ -247,10 +263,52 @@ const QuizPage = () => {
     <div
       style={{
         height: '100vh',
-        background: 'linear-gradient(to top, #ffdc75, #d37900, #a54e00)',
+        backgroundImage: `url(${scbackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         color: '#fff'
-      }}
-    >
+      }}>
+      <style>
+        {`
+          .emoji.bounce {
+            display: inline-block;
+            animation: bounce 1s infinite;
+          }
+
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+              transform: translateY(0);
+            }
+            40% {
+              transform: translateY(-10px);
+            }
+            60% {
+              transform: translateY(-5px);
+            }
+          }
+
+          .emoji.tantrum {
+            display: inline-block;
+            animation: tantrum 1s infinite;
+          }
+
+          @keyframes tantrum {
+            0%, 100% {
+              transform: translateX(0);
+            }
+            25% {
+              transform: translateX(-5px);
+            }
+            50% {
+              transform: translateX(10px);
+            }
+            75% {
+              transform: translateX(-5px);
+            }
+          }
+        `}
+      </style>
       <Container
         maxWidth="md"
         sx={{
@@ -259,7 +317,7 @@ const QuizPage = () => {
           justifyContent: 'center',
           alignItems: 'center'
         }}
-        >
+      >
         <Card
           sx={{
             width: 600,
@@ -276,8 +334,13 @@ const QuizPage = () => {
               shuffledQuestions.length > 0 && shuffledQuestions[currentQuestion] ? (
                 <>
                   <div className="container" style={{ borderBottom: "1px #8d8d8d solid", paddingBottom: "23px" }}>
-                    <Typography variant="h5">
+                    <Typography variant="h5" sx={{ display: 'flex', justifyContent: "space-between" }}>
                       <strong>{quizData.title}</strong>
+                      <Typography variant="h6" sx={{ color: 'red' }}>
+                        Time Left: {String(Math.floor(timeLeft / 3600)).padStart(2, '0')}:
+                        {String(Math.floor((timeLeft % 3600) / 60)).padStart(2, '0')}:
+                        {String(timeLeft % 60).padStart(2, '0')}
+                      </Typography>
                     </Typography>
                     <br />
                     <Typography variant="h5">
@@ -340,18 +403,21 @@ const QuizPage = () => {
               ) : null
             ) : (
               <Box textAlign="center">
-                <Typography variant="h4">Exam Finished!</Typography>
-                {score / shuffledQuestions.length >= 0.6 ? (
-                  <Typography variant="h5" sx={{ mt: 10, color: 'green' }}>
-                    <strong>Passed! 😄</strong>
+                <Typography variant="h4">{quizData.title}</Typography>
+                {score / shuffledQuestions.length >= quizData.passingRate / 100 ? (
+                  <Typography variant="h5" sx={{ mt: 5, color: 'green' }}>
+                    <strong>Passed! <span className="emoji bounce">😄</span></strong>
                   </Typography>
                 ) : (
-                  <Typography variant="h5" sx={{ mt: 10, color: 'red' }}>
-                    <strong>Failed! 🙁</strong>
+                  <Typography variant="h5" sx={{ mt: 5, color: 'red' }}>
+                    <strong>Failed! <span className="emoji tantrum">😭</span></strong>
                   </Typography>
                 )}
-                <Typography variant="h5" sx={{ mt: 10 }}><strong>{`Your score: ${score} / ${shuffledQuestions.length}`}</strong></Typography>
-                <Button variant="contained" color="primary" onClick={restartQuiz} sx={{ mt: 10 }}>
+                <Typography variant="h5" sx={{ mt: 5 }}><strong>{`Your score: ${score} out of ${shuffledQuestions.length}`}</strong></Typography>
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Passing Rate is {quizData.passingRate}%
+                </Typography>
+                <Button variant="contained" color="primary" onClick={restartQuiz} sx={{ mt: 5 }}>
                   Restart Quiz
                 </Button>
               </Box>

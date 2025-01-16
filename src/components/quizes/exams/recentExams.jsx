@@ -6,6 +6,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { jwtDecode } from 'jwt-decode';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import scbackground from '../../../assets/sbbg.png';
 
 const RecentExams = () => {
     const [hover, setHover] = useState(false);
@@ -81,10 +82,16 @@ const RecentExams = () => {
     return (
         <div style={{
             height: '100vh',
-            background: 'linear-gradient(to top, #ffdc75, #d37900, #a54e00)',
+            backgroundImage: `url(${scbackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             color: '#fff'
         }}>
-            <AppBar position="static" style={{ backgroundColor: '#FF9201' }}>
+            <AppBar position="static" style={{
+                backgroundColor: 'transparent',
+                boxShadow: '0 2px 15px rgba(0, 0, 0, 0.3)'
+            }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <img src={LogoSecsa} alt="logo" style={{ height: '40px' }} />
@@ -92,9 +99,7 @@ const RecentExams = () => {
 
                     <Button
                         style={{
-                            backgroundColor: hover ? '#fff' : '#FF9201',
                             color: hover ? '#FF9201' : '#fff',
-                            border: '1px solid #FF9201',
                             transition: 'background-color 0.3s, color 0.3s',
                         }}
                         onMouseEnter={() => setHover(true)}

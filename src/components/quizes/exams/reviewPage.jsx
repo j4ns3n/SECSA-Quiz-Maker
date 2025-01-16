@@ -13,7 +13,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-
+import scbackground from '../../../assets/sbbg.png';
 
 const ReviewPage = () => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -48,14 +48,18 @@ const ReviewPage = () => {
 
 
     return (
-        <div
-            style={{
-                height: '100vh',
-                background: 'linear-gradient(to top, #ffdc75, #d37900, #a54e00)',
-                color: '#fff'
-            }}
-        >
-            <AppBar position="static" style={{ backgroundColor: '#FF9201' }}>
+        <div style={{
+            height: '100vh',
+            backgroundImage: `url(${scbackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            color: '#fff'
+        }}>
+            <AppBar position="static" style={{
+                backgroundColor: 'transparent',
+                boxShadow: '0 2px 15px rgba(0, 0, 0, 0.3)'
+            }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <img src={LogoSecsa} alt="logo" style={{ height: '40px' }} />
@@ -63,9 +67,7 @@ const ReviewPage = () => {
 
                     <Button
                         style={{
-                            backgroundColor: hover ? '#fff' : '#FF9201',
                             color: hover ? '#FF9201' : '#fff',
-                            border: '1px solid #FF9201',
                             transition: 'background-color 0.3s, color 0.3s',
                         }}
                         onMouseEnter={() => setHover(true)}

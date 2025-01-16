@@ -26,6 +26,8 @@ import { red } from '@mui/material/colors';
 import { useState, useEffect } from 'react';
 import { useUserContext } from '../../hooks/useUserContext';
 import { Grid, MenuItem, InputLabel, FormControl, Select } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
 
 export default function UserComponent() {
     const [formValues, setFormValues] = useState({
@@ -51,6 +53,7 @@ export default function UserComponent() {
     const [openAddUserModal, setOpenAddUserModal] = useState(false);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [errors, setErrors] = useState({
         firstName: false,
@@ -88,7 +91,12 @@ export default function UserComponent() {
     const userRole = sessionStorage.getItem('userRole');
 
     const filteredUsers = users.filter(user => {
+        const matchesSearchQuery = `${user.firstName} ${user.lastName} ${user.username}`
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+
         return (
+            matchesSearchQuery &&
             (roleFilter === 'all' || user.role.toLowerCase() === roleFilter) &&
             (courseFilter === '' || user.course === courseFilter) &&
             (yearLevelFilter === '' || user.yearLevel === yearLevelFilter) &&
@@ -575,6 +583,20 @@ export default function UserComponent() {
                         <MenuItem value="4th Year">4th Year</MenuItem>
                     </Select>
                 </FormControl>
+                <TextField
+                    variant="outlined"
+                    label="Search Users"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ marginRight: '10px', width: '300px' }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        ),
+                    }}
+                />
             </Box>
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="caption table">
