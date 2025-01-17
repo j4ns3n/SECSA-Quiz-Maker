@@ -14,6 +14,8 @@ import Exam from '../../components/exam/exam';
 import User from '../../components/users/userComponent';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import Overview from '../../components/overview/overview';
+import Profile from '../../components/users/profile';
+import PersonIcon from '@mui/icons-material/Person';
 // import Footer from '../../components/Footer';
 
 // Navigation config
@@ -37,6 +39,11 @@ const NAVIGATION = [
     segment: 'users',
     title: 'Users',
     icon: <PeopleAltIcon />,
+  },
+  {
+    segment: 'profile',
+    title: 'Profile',
+    icon: <PersonIcon />,
   }
 ];
 
@@ -74,6 +81,8 @@ function DemoPageContent({ pathname, onLogout }) {
         return <Overview />;
       case '/users':
         return <User />;
+      case '/profile':
+        return <Profile />;
       default:
         return <div>Page Not Found</div>;
     }

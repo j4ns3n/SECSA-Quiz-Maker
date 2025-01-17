@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import LogoSecsa from '../assets/secsalogo.png';
 import LogoutIcon from '@mui/icons-material/Logout';
 import scbackground from '../assets/sbbg.png'
+import PersonIcon from '@mui/icons-material/Person';
 
 const QuizApp = () => {
     const navigate = useNavigate(); // Initialize navigate
     const [hover, setHover] = useState(false);
+    const [hover1, setHover1] = useState(false);
 
 
     const handleJoinClick = async () => {
@@ -16,6 +18,10 @@ const QuizApp = () => {
 
     const handleRecentExams = async () => {
         navigate('/exam/recent-exams', { replace: true });
+    };
+
+    const handleStudentProfile = async () => {
+        navigate('/student/profile', { replace: true });
     };
 
     const handleLogout = React.useCallback(() => {
@@ -41,7 +47,17 @@ const QuizApp = () => {
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <img src={LogoSecsa} alt="logo" style={{ height: '40px' }} />
                     </Typography>
-
+                    <Button
+                        style={{
+                            color: hover1 ? '#FF9201' : '#fff',
+                            transition: 'background-color 0.3s, color 0.3s',
+                        }}
+                        onMouseEnter={() => setHover1(true)}
+                        onMouseLeave={() => setHover1(false)}
+                        onClick={handleStudentProfile}
+                    >
+                        Profile <PersonIcon />
+                    </Button>
                     <Button
                         style={{
                             color: hover ? '#FF9201' : '#fff',
