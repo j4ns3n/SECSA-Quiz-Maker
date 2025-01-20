@@ -38,9 +38,9 @@ SECSA-Quiz-Generator is a web application designed to streamline the process of 
    ```
 
 ## Technologies Used
-- **Frontend**: [React](https://reactjs.org/) / [Angular](https://angular.io/) (Specify based on your stack)
-- **Backend**: [Node.js](https://nodejs.org/) / [Django](https://www.djangoproject.com/) (Specify based on your stack)
-- **Database**: [MongoDB](https://www.mongodb.com/) / [MySQL](https://www.mysql.com/) (Specify based on your stack)
+- **Frontend**: [React](https://reactjs.org/) /
+- **Backend**: [Node.js](https://nodejs.org/) /
+- **Database**: [MongoDB](https://www.mongodb.com/) / 
 
 ## Contributing
 
@@ -58,9 +58,3 @@ SECSA-Quiz-Generator is a web application designed to streamline the process of 
    git push origin feature-name
    ```
 5. Create a pull request.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## Contact
-For questions or support, please contact [your.email@example.com](mailto:your.email@example.com).
