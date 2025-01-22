@@ -61,6 +61,27 @@ function AppRoutes() {
     checkAuth();
   }, [location, navigate]);
 
+  useEffect(() => {
+    const handleBlur = () => {
+      if (role === "Student") {
+        handleLogout();
+        alert("You have been logged out because you switched tabs or windows.");
+      }
+    };
+
+    const handleFocus = () => {
+      console.log("Tab is focused again.");
+    };
+
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [role]);
+
   const handleLogin = (role) => {
     const token = localStorage.getItem('authToken');
     if (!token) return;
