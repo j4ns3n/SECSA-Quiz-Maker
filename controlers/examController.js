@@ -1,5 +1,6 @@
 const Exam = require('../models/exam');
-const crypto = require('crypto');
+const crypto = require('crypto-browserify');
+
 
 // Create a new exam
 const createExam = async (req, res) => {
