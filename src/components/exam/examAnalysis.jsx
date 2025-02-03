@@ -9,10 +9,10 @@ const ExamAnalysis = ({ exam, onBack }) => {
     const [modalTitle, setModalTitle] = useState('');
     const [modalData, setModalData] = useState([]);
     const handleOpenModal = (title, data) => {
+        console.log(data);
         setModalTitle(title);
         setModalData(data);
         setModalOpen(true);
-        console.log(data);
     };
 
     const handleCloseModal = () => {
@@ -66,20 +66,17 @@ const ExamAnalysis = ({ exam, onBack }) => {
 
 
     const questionRows = Object.keys(questionStats).map((questionText, index) => (
-        console.log(questionStats),
         {
-        no: index + 1,
-        questionText,
-        correctParticipants: questionStats[questionText].correctParticipants.length,
-        countCorrectParticipants: questionStats[questionText].correctParticipants,
-        wrongParticipants: questionStats[questionText].wrongParticipants.length,
-        countWrongParticipants: questionStats[questionText].wrongParticipants,
-        difficulty: questionStats[questionText].difficulty,
-        type: questionStats[questionText].type,
-    }));
+            no: index + 1,
+            questionText,
+            correctParticipants: questionStats[questionText].correctParticipants.length,
+            countCorrectParticipants: questionStats[questionText].correctParticipants,
+            wrongParticipants: questionStats[questionText].wrongParticipants.length,
+            countWrongParticipants: questionStats[questionText].wrongParticipants,
+            difficulty: questionStats[questionText].difficulty,
+            type: questionStats[questionText].type,
+        }));
 
-
-    console.log(questionRows);
 
     const totalQuestions = exam.totalQuestions;
 
@@ -94,10 +91,10 @@ const ExamAnalysis = ({ exam, onBack }) => {
 
         if (percentage >= 50) {
             passed += 1;
-            passedStudents.push(participant.name);
+            passedStudents.push({ name: participant.name, score: score });
         } else {
             failed += 1;
-            failedStudents.push(participant.name);
+            failedStudents.push({ name: participant.name, score: score });
         }
     });
 
@@ -230,13 +227,17 @@ const ExamAnalysis = ({ exam, onBack }) => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>Student Name</TableCell>
+                                    <TableCell>Score</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {modalData.map((student, index) => (
                                     <TableRow key={index}>
                                         <TableCell>
-                                            <strong>{index + 1}.</strong> {student}
+                                            <strong>{index + 1}.</strong> {student.name}
+                                        </TableCell>
+                                        <TableCell>
+                                            <strong>{student.score}</strong>
                                         </TableCell>
                                     </TableRow>
                                 ))}
