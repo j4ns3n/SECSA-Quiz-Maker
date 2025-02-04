@@ -75,7 +75,7 @@ const QuizApp = () => {
             {/* Main Content */}
             <Container maxWidth="sm" style={{ textAlign: 'center', marginTop: '15vh' }}>
                 <Typography variant="h3" style={{ marginBottom: '50px', fontWeight: 'bold' }}>
-                    SECSA Quiz Maker
+                    SECSA Quiz Generator
                 </Typography>
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '20px' }}>
